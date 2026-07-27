@@ -13,7 +13,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Resolution logic to automatically load the model pkl file
 MODEL_PATH = None
 for filename in os.listdir(CURRENT_DIR):
-    if filename.endswith(".pkl"):
+    if filename.endswith("rfamodel.pkl"):
         MODEL_PATH = os.path.join(CURRENT_DIR, filename)
         break
 
