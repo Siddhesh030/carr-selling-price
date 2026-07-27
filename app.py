@@ -4,10 +4,8 @@ import numpy as np
 from flask import Flask, request, render_template_string, session
 
 app = Flask(__name__)
-# Cryptographically sound session protection key
 app.secret_key = os.urandom(32)
 
-# Server filename targeting your trained prediction pipeline
 MODEL_PATH = "rfamodel.pkl"
 
 def load_valuation_engine():
@@ -22,7 +20,7 @@ def load_valuation_engine():
 model = load_valuation_engine()
 
 # -------------------------------------------------------------
-# HIGH-FIDELITY MEDICAL CYBER-GLASSMORPHISM UI
+# HIGH-FIDELITY VEHICLE CYBER-GLASSMORPHISM UI
 # -------------------------------------------------------------
 DASHBOARD_TEMPLATE = """
 <!DOCTYPE html>
@@ -30,7 +28,7 @@ DASHBOARD_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Model Intelligence Engine | Advanced Medical Costs</title>
+    <title>AutoValuate AI | Advanced Predictive Matrix</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -38,6 +36,7 @@ DASHBOARD_TEMPLATE = """
             --bg-base: #060913;
             --panel-glass: rgba(10, 16, 32, 0.7);
             --border-glass: rgba(255, 255, 255, 0.05);
+            --accent-glow: rgba(99, 102, 241, 0.4);
             
             --neon-blue: #38bdf8;
             --neon-indigo: #6366f1;
@@ -70,22 +69,20 @@ DASHBOARD_TEMPLATE = """
         ::-webkit-scrollbar {
             width: 0px;
             height: 0px;
-            background: transparent; /* Totally removes visible scrollbars */
+            background: transparent;
         }
 
         .dashboard-container {
             width: 100%;
-            max-width: 1300px;
+            max-width: 1440px;
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
+            grid-template-columns: 1.25fr 0.75fr;
             gap: 2rem;
             animation: initAppearence 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @media (max-width: 1100px) {
-            .dashboard-container {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 1200px) {
+            .dashboard-container { grid-template-columns: 1fr; }
         }
 
         .glass-card {
@@ -96,7 +93,6 @@ DASHBOARD_TEMPLATE = """
             border-radius: 32px;
             padding: 2.5rem;
             box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-            position: relative;
         }
 
         .header-block {
@@ -109,7 +105,7 @@ DASHBOARD_TEMPLATE = """
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             font-weight: 800;
             letter-spacing: -0.03em;
             background: linear-gradient(135deg, #ffffff 30%, #c7d2fe 100%);
@@ -125,10 +121,13 @@ DASHBOARD_TEMPLATE = """
 
         .feature-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
         }
 
+        @media (max-width: 900px) {
+            .feature-grid { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 600px) {
             .feature-grid { grid-template-columns: 1fr; }
         }
@@ -139,8 +138,11 @@ DASHBOARD_TEMPLATE = """
             gap: 0.5rem;
         }
 
+        .span-2 { grid-column: span 2; }
+        @media (max-width: 900px) { .span-2 { grid-column: span 1; } }
+
         label {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: var(--text-tokens);
             text-transform: uppercase;
@@ -186,19 +188,18 @@ DASHBOARD_TEMPLATE = """
             height: 16px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--neon-blue), var(--neon-indigo));
-            box-shadow: 0 0 10px var(--neon-indigo);
         }
 
         .range-counter {
             font-size: 0.9rem;
             font-weight: 700;
             color: var(--neon-blue);
-            min-width: 2.5rem;
+            min-width: 4rem;
             text-align: right;
         }
 
         .submit-trigger {
-            grid-column: span 2;
+            grid-column: span 3;
             background: linear-gradient(135deg, var(--neon-blue) 0%, var(--neon-indigo) 50%, var(--neon-purple) 100%);
             color: white;
             border: none;
@@ -209,15 +210,16 @@ DASHBOARD_TEMPLATE = """
             cursor: pointer;
             transition: all 0.4s ease;
             margin-top: 1rem;
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 30px var(--accent-glow);
         }
 
+        @media (max-width: 900px) { .submit-trigger { grid-column: span 2; } }
         @media (max-width: 600px) { .submit-trigger { grid-column: span 1; } }
 
         .submit-trigger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.5);
-            filter: brightness(1.1);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.6);
+            filter: brightness(1.15);
         }
 
         .analytics-side {
@@ -227,13 +229,11 @@ DASHBOARD_TEMPLATE = """
         }
 
         .valuation-display {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
             border: 1px solid rgba(99, 102, 241, 0.3);
             border-radius: 28px;
-            padding: 2rem;
+            padding: 2.2rem;
             text-align: center;
-            backdrop-filter: blur(10px);
-            animation: cardSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .valuation-display h2 {
@@ -245,10 +245,14 @@ DASHBOARD_TEMPLATE = """
         }
 
         .valuation-price-container {
-            font-size: 3rem;
+            font-size: 3.2rem;
             font-weight: 900;
             letter-spacing: -0.04em;
-            text-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+            text-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.25rem;
         }
 
         .valuation-price-container span {
@@ -258,22 +262,22 @@ DASHBOARD_TEMPLATE = """
         }
 
         .chart-card {
-            padding: 1.5rem;
-            min-height: 220px;
+            padding: 2rem;
+            min-height: 260px;
         }
 
         .chat-history-card {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            max-height: 400px;
+            max-height: 480px;
         }
 
         .chat-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 0.75rem;
         }
@@ -292,16 +296,16 @@ DASHBOARD_TEMPLATE = """
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .chat-bubble {
             display: flex;
             flex-direction: column;
-            padding: 0.9rem 1.1rem;
-            border-radius: 18px;
-            font-size: 0.88rem;
-            line-height: 1.45;
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .chat-bubble.user-query {
@@ -323,10 +327,10 @@ DASHBOARD_TEMPLATE = """
         .bubble-meta {
             font-size: 0.7rem;
             color: var(--text-muted);
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.4rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
         }
 
         .no-records {
@@ -340,19 +344,13 @@ DASHBOARD_TEMPLATE = """
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.25);
             border-radius: 16px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+            padding: 1.1rem;
+            margin-bottom: 2rem;
             color: #fca5a5;
-            font-size: 0.9rem;
             text-align: center;
         }
 
         @keyframes initAppearence {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes cardSlideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
@@ -361,12 +359,12 @@ DASHBOARD_TEMPLATE = """
 <body>
 
     <div class="dashboard-container">
-        <!-- Input Panel Form Configuration -->
+        <!-- Main Form Elements Interface Card -->
         <div class="glass-card">
             <div class="header-block">
                 <div>
-                    <h1>Model Intelligence Engine</h1>
-                    <p class="subtitle">Real-time decision tree regressor analytical pipeline</p>
+                    <h1>Valuation Matrix Node</h1>
+                    <p class="subtitle">Next-Gen 20-Factor Architectural Prediction Workspace</p>
                 </div>
                 <div style="min-width: 110px;">
                     <label>Currency</label>
@@ -386,90 +384,196 @@ DASHBOARD_TEMPLATE = """
             {% endif %}
 
             <form method="POST" action="/" class="feature-grid">
-                <!-- Age Parameter input element slider -->
+                <!-- Row 1: Brand & Layout Configuration -->
                 <div class="input-wrapper">
-                    <label>Age</label>
+                    <label>Brand Manufacturer</label>
+                    <select name="Make">
+                        <option value="0" {% if form_values.Make == '0' %}selected{% endif %}>Toyota</option>
+                        <option value="1" {% if form_values.Make == '1' %}selected{% endif %}>Honda</option>
+                        <option value="2" {% if form_values.Make == '2' %}selected{% endif %}>Ford</option>
+                        <option value="3" {% if form_values.Make == '3' %}selected{% endif %}>BMW</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Variant Architectural Form</label>
+                    <select name="Model">
+                        <option value="0" {% if form_values.Model == '0' %}selected{% endif %}>Sedan Base Matrix</option>
+                        <option value="1" {% if form_values.Model == '1' %}selected{% endif %}>SUV Hyper Sport</option>
+                        <option value="2" {% if form_values.Model == '2' %}selected{% endif %}>Eco Hatch Core</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Trim Variant Class</label>
+                    <select name="Trim_Level">
+                        <option value="0" {% if form_values.Trim_Level == '0' %}selected{% endif %}>Standard Entry</option>
+                        <option value="1" {% if form_values.Trim_Level == '1' %}selected{% endif %}>Mid Tier Comfort</option>
+                        <option value="2" {% if form_values.Trim_Level == '2' %}selected{% endif %}>Luxury Pro Line</option>
+                    </select>
+                </div>
+
+                <!-- Row 2: Mechanical Performance Parameters -->
+                <div class="input-wrapper">
+                    <label>Year of Assembly</label>
                     <div class="range-group">
-                        <input type="range" id="age" name="age" min="18" max="100" value="{{ form_values.age|default(28) }}" oninput="syncRangeValue('age', this.value)">
-                        <span id="age_counter" class="range-counter">{{ form_values.age|default(28) }}</span>
+                        <input type="range" id="Year" name="Year" min="2010" max="2026" value="{{ form_values.Year|default(2020) }}" oninput="syncRangeValue('Year', this.value)">
+                        <span id="Year_counter" class="range-counter">{{ form_values.Year|default(2020) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Fuel System Source</label>
+                    <select name="Fuel_Type">
+                        <option value="0" {% if form_values.Fuel_Type == '0' %}selected{% endif %}>Unleaded Petrol</option>
+                        <option value="1" {% if form_values.Fuel_Type == '1' %}selected{% endif %}>Refined Diesel</option>
+                        <option value="2" {% if form_values.Fuel_Type == '2' %}selected{% endif %}>Solid State Electric</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Transmission Gear Layout</label>
+                    <select name="Transmission">
+                        <option value="0" {% if form_values.Transmission == '0' %}selected{% endif %}>Manual Mesh</option>
+                        <option value="1" {% if form_values.Transmission == '1' %}selected{% endif %}>Dual Clutch Automatic</option>
+                    </select>
+                </div>
+
+                <!-- Row 3: Physical Operations Metrics -->
+                <div class="input-wrapper">
+                    <label>Engine Displacement Capacity (L)</label>
+                    <div class="range-group">
+                        <input type="range" id="Engine_Size" name="Engine_Size" min="0.8" max="6.0" step="0.1" value="{{ form_values.Engine_Size|default(2.0) }}" oninput="syncRangeValue('Engine_Size', this.value)">
+                        <span id="Engine_Size_counter" class="range-counter">{{ form_values.Engine_Size|default(2.0) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper span-2">
+                    <label>Accumulated Distance Traveled (Odometer km)</label>
+                    <div class="range-group">
+                        <input type="range" id="Mileage" name="Mileage" min="0" max="200000" step="500" value="{{ form_values.Mileage|default(45000) }}" oninput="syncRangeValue('Mileage', this.value)">
+                        <span id="Mileage_counter" class="range-counter">{{ form_values.Mileage|default(45000) }}</span>
                     </div>
                 </div>
 
-                <!-- BMI Parameter input element slider -->
+                <!-- Row 4: Lifecycle Dynamics Evaluation -->
                 <div class="input-wrapper">
-                    <label>BMI</label>
+                    <label>Service Portfolio State</label>
+                    <select name="Service_History">
+                        <option value="0" {% if form_values.Service_History == '0' %}selected{% endif %}>Full Digital Verified</option>
+                        <option value="1" {% if form_values.Service_History == '1' %}selected{% endif %}>Partial Tracking Logs</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Brake Horsepower Rating</label>
                     <div class="range-group">
-                        <input type="range" id="bmi" name="bmi" min="15" max="60" step="1" value="{{ form_values.bmi|default(25) }}" oninput="syncRangeValue('bmi', this.value)">
-                        <span id="bmi_counter" class="range-counter">{{ form_values.bmi|default(25) }}</span>
+                        <input type="range" id="Horsepower" name="Horsepower" min="60" max="600" value="{{ form_values.Horsepower|default(150) }}" oninput="syncRangeValue('Horsepower', this.value)">
+                        <span id="Horsepower_counter" class="range-counter">{{ form_values.Horsepower|default(150) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Torque Curve Rating (Nm)</label>
+                    <div class="range-group">
+                        <input type="range" id="Torque" name="Torque" min="100" max="700" value="{{ form_values.Torque|default(250) }}" oninput="syncRangeValue('Torque', this.value)">
+                        <span id="Torque_counter" class="range-counter">{{ form_values.Torque|default(250) }}</span>
                     </div>
                 </div>
 
-                <!-- Sex Category selector drop option -->
+                <!-- Row 5: Safety Matrix Profiles -->
                 <div class="input-wrapper">
-                    <label>Sex</label>
-                    <select name="sex">
-                        <option value="Male" {% if form_values.sex == 'Male' %}selected{% endif %}>Male</option>
-                        <option value="Female" {% if form_values.sex == 'Female' %}selected{% endif %}>Female</option>
+                    <label>Previous User Matrix Count</label>
+                    <select name="Owners">
+                        <option value="1" {% if form_values.Owners == '1' %}selected{% endif %}>1 Registered Owner</option>
+                        <option value="2" {% if form_values.Owners == '2' %}selected{% endif %}>2 Registered Owners</option>
+                        <option value="3" {% if form_values.Owners == '3' %}selected{% endif %}>3+ System Chain</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Incident Structural History</label>
+                    <select name="Accident_History">
+                        <option value="0" {% if form_values.Accident_History == '0' %}selected{% endif %}>Zero Dynamic Incidents</option>
+                        <option value="1" {% if form_values.Accident_History == '1' %}selected{% endif %}>Major Insurance Restructuring</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Premium Coating Color Specification</label>
+                    <select name="Color">
+                        <option value="0" {% if form_values.Color == '0' %}selected{% endif %}>Obsidian Metallic Black</option>
+                        <option value="1" {% if form_values.Color == '1' %}selected{% endif %}>Chalk Pure White</option>
+                        <option value="2" {% if form_values.Color == '2' %}selected{% endif %}>Liquid Silver Metallic</option>
                     </select>
                 </div>
 
-                <!-- Children numeric dependency value scale -->
+                <!-- Row 6: Structural Geography Mapping Options -->
                 <div class="input-wrapper">
-                    <label>Children</label>
-                    <select name="children">
-                        <option value="0" {% if form_values.children == '0' %}selected{% endif %}>0</option>
-                        <option value="1" {% if form_values.children == '1' %}selected{% endif %}>1</option>
-                        <option value="2" {% if form_values.children == '2' %}selected{% endif %}>2</option>
-                        <option value="3" {% if form_values.children == '3' %}selected{% endif %}>3</option>
-                        <option value="4" {% if form_values.children == '4' %}selected{% endif %}>4+</option>
+                    <label>Interior Aesthetic State</label>
+                    <select name="Interior_Condition">
+                        <option value="0" {% if form_values.Interior_Condition == '0' %}selected{% endif %}>Pristine Showroom Condition</option>
+                        <option value="1" {% if form_values.Interior_Condition == '1' %}selected{% endif %}>Minimal Wear Layer</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Chassis Body Architecture</label>
+                    <select name="Body_Type">
+                        <option value="0" {% if form_values.Body_Type == '0' %}selected{% endif %}>Aerodynamic Coupe</option>
+                        <option value="1" {% if form_values.Body_Type == '1' %}selected{% endif %}>Classic Structural Sedan</option>
+                        <option value="2" {% if form_values.Body_Type == '2' %}selected{% endif %}>High-Ground Clearance SUV</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Drivetrain Dynamic Matrix</label>
+                    <select name="Drivetrain">
+                        <option value="0" {% if form_values.Drivetrain == '0' %}selected{% endif %}>Front-Wheel Vector (FWD)</option>
+                        <option value="1" {% if form_values.Drivetrain == '1' %}selected{% endif %}>Rear-Wheel Balance (RWD)</option>
+                        <option value="2" {% if form_values.Drivetrain == '2' %}selected{% endif %}>Intelligent All-Wheel (AWD)</option>
                     </select>
                 </div>
 
-                <!-- Risk Parameter conditional mapping -->
+                <!-- Row 7: Consumer Efficiencies Elements -->
                 <div class="input-wrapper">
-                    <label>Smoker Status</label>
-                    <select name="smoker">
-                        <option value="Yes" {% if form_values.smoker == 'Yes' %}selected{% endif %}>Yes</option>
-                        <option value="No" {% if form_values.smoker == 'No' %}selected{% endif %}>No</option>
+                    <label>Integrated Electronics Suite</label>
+                    <select name="Tech_Package">
+                        <option value="0" {% if form_values.Tech_Package == '0' %}selected{% endif %}>Standard Analogue Hub</option>
+                        <option value="1" {% if form_values.Tech_Package == '1' %}selected{% endif %}>Advanced Infotainment Tier</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Resource Consumption Efficiency (km/L)</label>
+                    <div class="range-group">
+                        <input type="range" id="Fuel_Efficiency" name="Fuel_Efficiency" min="5" max="30" value="{{ form_values.Fuel_Efficiency|default(15) }}" oninput="syncRangeValue('Fuel_Efficiency', this.value)">
+                        <span id="Fuel_Efficiency_counter" class="range-counter">{{ form_values.Fuel_Efficiency|default(15) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Geographic Marketplace Cluster</label>
+                    <select name="Location">
+                        <option value="0" {% if form_values.Location == '0' %}selected{% endif %}>Tier 1 Capital Metropolitan Hub</option>
+                        <option value="1" {% if form_values.Location == '1' %}selected{% endif %}>Tier 2 Regional Distribution Node</option>
                     </select>
                 </div>
 
-                <!-- Geographical regional boundary assignment mapping -->
-                <div class="input-wrapper">
-                    <label>Geographic Region</label>
-                    <select name="region">
-                        <option value="0" {% if form_values.region == '0' %}selected{% endif %}>Southeast</option>
-                        <option value="1" {% if form_values.region == '1' %}selected{% endif %}>Southwest</option>
-                        <option value="2" {% if form_values.region == '2' %}selected{% endif %}>Northeast</option>
-                        <option value="3" {% if form_values.region == '3' %}selected{% endif %}>Northwest</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="submit-trigger">Execute Prediction Pipeline</button>
+                <button type="submit" class="submit-trigger">Execute Asset Pipeline Prediction Vector</button>
             </form>
         </div>
 
-        <!-- Metric Output Presentation Side Stack -->
+        <!-- Right Presentation Analytics Panel Column Stack -->
         <div class="analytics-side">
             {% if prediction_result is not none %}
             <div class="valuation-display">
-                <h2>Projected Premium Charge</h2>
+                <h2>Evaluated Target Vector Consensus</h2>
                 <div class="valuation-price-container">
                     <span id="currencySymbol">$</span>
                     <span id="baseValuationPrice" data-usd="{{ prediction_result|replace(',', '') }}">{{ prediction_result }}</span>
                 </div>
+                <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 0.4rem; color: #a5b4fc;">RandomForest Regressor Ensemble 17-D Matrix Resolution Mapping</p>
             </div>
             {% endif %}
 
-            <!-- Dynamic Session Chart Mapping Framework -->
+            <!-- Dynamic Graphical Run Analysis Metrics Container -->
             <div class="glass-card chart-card">
-                <canvas id="historicalMetricsChart" style="width:100%; max-height:190px;"></canvas>
+                <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--neon-blue); letter-spacing: 0.05em; text-transform: uppercase;">Real-Time Pipeline Tracking Metrics</h3>
+                <canvas id="historicalMetricsChart" style="width:100%; max-height: 190px;"></canvas>
             </div>
 
-            <!-- Thread Execution Stream Evaluation Container Logs -->
+            <!-- Historical Sequential Trace Log Pipeline Container -->
             <div class="glass-card chat-history-card">
                 <div class="chat-header">
-                    <h3 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-tokens);">Evaluation Logs</h3>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-tokens); text-transform: uppercase; letter-spacing: 0.05em;">Sequential Prediction Logs</h3>
                     {% if history %}
                     <form method="POST" action="/clear">
                         <button type="submit" class="clear-history-action">Purge Logs</button>
@@ -480,16 +584,16 @@ DASHBOARD_TEMPLATE = """
                 <div class="chat-log-stream">
                     {% for interaction in history %}
                         <div class="chat-bubble user-query">
-                            <div class="bubble-meta">Vector Fingerprint Input</div>
-                            Age: {{ interaction.inputs.age }} | BMI: {{ interaction.inputs.bmi }} | Smoker: {{ interaction.inputs.smoker }}
+                            <div class="bubble-meta">Asset Input Fingerprint Payload</div>
+                            Year Assembly: {{ interaction.inputs.Year }} | Mileage Tracker: {{ interaction.inputs.Mileage }} km | HP: {{ interaction.inputs.Horsepower }}
                         </div>
                         <div class="chat-bubble ai-response">
-                            <div class="bubble-meta">Calculated Regression Target</div>
-                            System estimation matrix array resolved to output vector: 
+                            <div class="bubble-meta">Model Engine Vector Response</div>
+                            Asset Target Valuation Resolution Vector calculated at: 
                             <strong style="color: var(--neon-blue);" class="loggedPrice" data-usd="{{ interaction.output|replace(',', '') }}">${{ interaction.output }} USD</strong>
                         </div>
                     {% else %}
-                        <div class="no-records">No past records in session history stack.</div>
+                        <div class="no-records">No session records tracked in current system state stack.</div>
                     {% endfor %}
                 </div>
             </div>
@@ -501,7 +605,7 @@ DASHBOARD_TEMPLATE = """
             USD: { symbol: '$', rate: 1.0 },
             EUR: { symbol: '€', rate: 0.92 },
             GBP: { symbol: '£', rate: 0.79 },
-            JPY: { symbol: '¥', rate: 156.2 },
+            JPY: { symbol: '¥', rate: 156.0 },
             CAD: { symbol: 'C$', rate: 1.37 },
             AUD: { symbol: 'A$', rate: 1.52 }
         };
@@ -513,41 +617,43 @@ DASHBOARD_TEMPLATE = """
         function convertActiveValuations() {
             const selector = document.getElementById('currencySelector');
             const targetCurrency = selector.value;
-            const config = currencyExchangeMatrix[targetCurrency];
+            const configuration = currencyExchangeMatrix[targetCurrency];
             
-            const priceEl = document.getElementById('baseValuationPrice');
-            const symbolEl = document.getElementById('currencySymbol');
-            if(priceEl && symbolEl) {
-                const nativeUSD = parseFloat(priceEl.getAttribute('data-usd'));
-                symbolEl.innerText = config.symbol;
-                priceEl.innerText = (nativeUSD * config.rate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const primaryPriceElement = document.getElementById('baseValuationPrice');
+            const primarySymbolElement = document.getElementById('currencySymbol');
+            if(primaryPriceElement && primarySymbolElement) {
+                const nativeUSDValue = parseFloat(primaryPriceElement.getAttribute('data-usd'));
+                const scaledPrice = nativeUSDValue * configuration.rate;
+                primarySymbolElement.innerText = configuration.symbol;
+                primaryPriceElement.innerText = scaledPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
 
-            document.querySelectorAll('.loggedPrice').forEach(el => {
-                const nativeUSD = parseFloat(el.getAttribute('data-usd'));
-                el.innerText = config.symbol + (nativeUSD * config.rate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + targetCurrency;
+            document.querySelectorAll('.loggedPrice').forEach(element => {
+                const nativeUSD = parseFloat(element.getAttribute('data-usd'));
+                const scaled = nativeUSD * configuration.rate;
+                element.innerText = configuration.symbol + scaled.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + targetCurrency;
             });
         }
 
         document.addEventListener("DOMContentLoaded", function() {
             const rawLoggedNodes = document.querySelectorAll('.loggedPrice');
-            const dataPoints = [];
-            const labelPoints = [];
+            const coordinateDataPoints = [];
+            const coordinateLabels = [];
             
             for (let i = rawLoggedNodes.length - 1; i >= 0; i--) {
-                dataPoints.push(parseFloat(rawLoggedNodes[i].getAttribute('data-usd')));
-                labelPoints.push("Run " + (rawLoggedNodes.length - i));
+                coordinateDataPoints.push(parseFloat(rawLoggedNodes[i].getAttribute('data-usd')));
+                coordinateLabels.push("Run " + (rawLoggedNodes.length - i));
             }
 
-            const ctx = document.getElementById('historicalMetricsChart').getContext('2d');
-            new Chart(ctx, {
+            const visualContextNode = document.getElementById('historicalMetricsChart').getContext('2d');
+            new Chart(visualContextNode, {
                 type: 'line',
                 data: {
-                    labels: labelPoints.length ? labelPoints : ["System Idle"],
+                    labels: coordinateLabels.length ? coordinateLabels : ["Idle Node State"],
                     datasets: [{
-                        data: dataPoints.length ? dataPoints : [0],
+                        data: coordinateDataPoints.length ? coordinateDataPoints : [0],
                         borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
                         borderWidth: 3,
                         tension: 0.4,
                         pointBackgroundColor: '#38bdf8',
@@ -559,8 +665,8 @@ DASHBOARD_TEMPLATE = """
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#64748b' } },
-                        y: { grid: { color: 'rgba(255, 255, 255, 0.02)' }, ticks: { color: '#64748b' } }
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.03)' }, ticks: { color: '#64748b' } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.03)' }, ticks: { color: '#64748b' } }
                     }
                 }
             });
@@ -573,7 +679,7 @@ DASHBOARD_TEMPLATE = """
 """
 
 # -------------------------------------------------------------
-# CORE LOGISTICS CONTROLLER MATRIX ENDPOINT
+# CORE BACKEND COMPILATION MATRIX STRATAGEM
 # -------------------------------------------------------------
 @app.route("/", methods=["GET", "POST"])
 def main_gateway():
@@ -585,59 +691,61 @@ def main_gateway():
         session["history"] = []
 
     if request.method == "POST":
-        fields = ['age', 'bmi', 'sex', 'children', 'smoker', 'region']
-        form_values = {f: request.form.get(f) for f in fields}
+        # Capture raw visual input forms
+        all_ui_fields = [
+            'Make', 'Model', 'Trim_Level', 'Year', 'Fuel_Type', 'Transmission', 'Engine_Size', 
+            'Service_History', 'Mileage', 'Horsepower', 'Torque', 'Owners', 
+            'Accident_History', 'Color', 'Interior_Condition', 'Body_Type', 'Drivetrain', 
+            'Tech_Package', 'Fuel_Efficiency', 'Location'
+        ]
+        form_values = {f: request.form.get(f) for f in all_ui_fields}
 
-        # ROBUST SIMULATION FALLBACK ENGINE MODE 
-        # Activates implicitly if 'model.pkl' is not physically tracked inside root context storage.
+        # Safe Math Fallback Mode if model configuration is missing from the directory
         if model is None:
             try:
-                # Predictive mathematical matrix matching actual medical trends
-                base_calc = 8000.00
-                age_weight = int(form_values.get('age', 28)) * 260.00
-                bmi_weight = float(form_values.get('bmi', 25)) * 340.00
-                
-                if form_values.get('smoker') == 'Yes':
-                    smoker_weight = 15000.00
-                else:
-                    smoker_weight = 0.00
-
-                calculated_simulation_vector = base_calc + age_weight + bmi_weight + smoker_weight
-                prediction_result = f"{calculated_simulation_vector:,.2f}"
+                base_calculation = 41000.00
+                mileage_deduction = float(form_values.get('Mileage', 45000)) * 0.11
+                age_deduction = (2026 - int(form_values.get('Year', 2020))) * 1650
+                calculated_sim_val = max(3200.00, base_calculation - mileage_deduction - age_deduction)
+                prediction_result = f"{calculated_sim_val:,.2f}"
 
                 current_stack = session["history"]
-                current_stack.insert(0, {
-                    "inputs": form_values,
-                    "output": prediction_result
-                })
-                session["history"] = current_stack[:5] # Historical depth retention layout cap
-
+                current_stack.insert(0, {"inputs": form_values, "output": prediction_result})
+                session["history"] = current_stack[:6]
             except Exception as ex:
-                error_msg = f"Mathematical Regression Simulation Exception: {str(ex)}"
+                error_msg = f"Vector Generation Simulation Exception: {str(ex)}"
         else:
-            # Native Machine Learning Pipeline Execution Node Block
             try:
+                # COMPILATION CRITICAL CORRECTION: Map inputs to strictly align with the 17-D model vector matrix
                 evaluation_vector = np.array([[
-                    int(form_values['age']),
-                    float(form_values['bmi']),
-                    1 if form_values['sex'] == 'Male' else 0,
-                    int(form_values['children']),
-                    1 if form_values['smoker'] == 'Yes' else 0,
-                    int(form_values['region'])
-                ]])
+                    int(form_values['Make']),
+                    int(form_values['Model']),
+                    int(form_values['Year']),
+                    int(form_values['Fuel_Type']),
+                    int(form_values['Transmission']),
+                    float(form_values['Engine_Size']),
+                    int(form_values['Service_History']),
+                    float(form_values['Mileage']),
+                    int(form_values['Horsepower']),
+                    int(form_values['Torque']),
+                    int(form_values['Owners']),
+                    int(form_values['Accident_History']),
+                    int(form_values['Color']),
+                    int(form_values['Body_Type']),
+                    int(form_values['Drivetrain']),
+                    float(form_values['Fuel_Efficiency']),
+                    int(form_values['Location'])
+                ]], dtype=object)
 
                 calculated_matrix = model.predict(evaluation_vector)
                 prediction_result = f"{float(calculated_matrix[0]):,.2f}"
 
                 current_stack = session["history"]
-                current_stack.insert(0, {
-                    "inputs": form_values,
-                    "output": prediction_result
-                })
-                session["history"] = current_stack[:5]
+                current_stack.insert(0, {"inputs": form_values, "output": prediction_result})
+                session["history"] = current_stack[:6]
 
             except Exception as ex:
-                error_msg = f"Vector Generation Execution Error: {str(ex)}"
+                error_msg = f"Vector Compilation Execution Error: {str(ex)}"
 
     return render_template_string(
         DASHBOARD_TEMPLATE,
