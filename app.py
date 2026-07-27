@@ -20,7 +20,7 @@ def load_valuation_engine():
 model = load_valuation_engine()
 
 # -------------------------------------------------------------
-# HIGH-ENHANCEMENT LUXURY NEON UI TEMPLATE
+# HIGH-FIDELITY DYNAMIC SIMPLIFIED INTERFACE TEMPLATE
 # -------------------------------------------------------------
 DASHBOARD_TEMPLATE = """
 <!DOCTYPE html>
@@ -32,15 +32,41 @@ DASHBOARD_TEMPLATE = """
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg-base: #080c18;
-            --panel-glass: rgba(15, 22, 42, 0.75);
+        /* Multi-Theme Framework Matrix definitions */
+        :root, [data-theme="cyber"] {
+            --bg-base: #060913;
+            --panel-glass: rgba(15, 23, 42, 0.75);
             --border-glass: rgba(255, 255, 255, 0.08);
-            --neon-cyan: #06b6d4;
-            --neon-purple: #8b5cf6;
-            --neon-pink: #ec4899;
+            --neon-accent: #06b6d4;
+            --neon-secondary: #8b5cf6;
+            --neon-gradient: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --bg-glow: radial-gradient(circle at 50% 0%, #1c1942 0%, #060913 70%);
+        }
+        
+        [data-theme="emerald"] {
+            --bg-base: #022c22;
+            --panel-glass: rgba(6, 78, 59, 0.5);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --neon-accent: #10b981;
+            --neon-secondary: #fbbf24;
+            --neon-gradient: linear-gradient(135deg, #10b981 0%, #f59e0b 100%);
+            --text-main: #f0fdf4;
+            --text-muted: #a7f3d0;
+            --bg-glow: radial-gradient(circle at 50% 0%, #064e3b 0%, #022c22 75%);
+        }
+
+        [data-theme="crimson"] {
+            --bg-base: #111827;
+            --panel-glass: rgba(31, 41, 55, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.06);
+            --neon-accent: #ef4444;
+            --neon-secondary: #f43f5e;
+            --neon-gradient: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+            --text-main: #f9fafb;
+            --text-muted: #d1d5db;
+            --bg-glow: radial-gradient(circle at 50% 0%, #450a0a 0%, #111827 75%);
         }
 
         * {
@@ -51,7 +77,7 @@ DASHBOARD_TEMPLATE = """
         }
 
         body {
-            background: radial-gradient(circle at 50% 0%, #1c1942 0%, var(--bg-base) 70%);
+            background: var(--bg-glow);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -59,22 +85,32 @@ DASHBOARD_TEMPLATE = """
             align-items: center;
             padding: 2rem;
             overflow-x: hidden;
+            transition: background 0.5s ease;
         }
 
-        /* Suppress Arrow Scrollbars Completely */
+        /* Suppress Arrow Scrollbars/Spinners Completely */
         ::-webkit-scrollbar {
             width: 0px;
             height: 0px;
             background: transparent;
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
 
         .dashboard-container {
             width: 100%;
             max-width: 1400px;
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
+            grid-template-columns: 1.25fr 0.75fr;
             gap: 2rem;
-            animation: fadeIn 0.6s ease-out;
+            animation: fadeIn 0.5s ease-out;
         }
 
         @media (max-width: 1150px) {
@@ -89,6 +125,7 @@ DASHBOARD_TEMPLATE = """
             border-radius: 24px;
             padding: 2.2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
         }
 
         .header-block {
@@ -98,13 +135,15 @@ DASHBOARD_TEMPLATE = """
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: 2.1rem;
             font-weight: 800;
             letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #ffffff 40%, var(--neon-cyan) 100%);
+            background: linear-gradient(135deg, #ffffff 40%, var(--neon-accent) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -113,6 +152,12 @@ DASHBOARD_TEMPLATE = """
             color: var(--text-muted);
             font-size: 0.95rem;
             margin-top: 0.25rem;
+        }
+
+        .controls-header {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
         }
 
         .feature-grid {
@@ -134,9 +179,6 @@ DASHBOARD_TEMPLATE = """
             gap: 0.4rem;
         }
 
-        .span-2 { grid-column: span 2; }
-        @media (max-width: 850px) { .span-2 { grid-column: span 1; } }
-
         label {
             font-size: 0.75rem;
             font-weight: 700;
@@ -146,20 +188,21 @@ DASHBOARD_TEMPLATE = """
         }
 
         input, select {
-            background: rgba(10, 15, 30, 0.8);
+            background: rgba(10, 15, 30, 0.6);
             border: 1px solid var(--border-glass);
             border-radius: 12px;
             padding: 0.85rem 1rem;
             color: var(--text-main);
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.25s ease;
+            transition: all 0.25s ease;
             width: 100%;
         }
 
         input:focus, select:focus {
-            border-color: var(--neon-cyan);
+            border-color: var(--neon-accent);
             box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+            background: rgba(10, 15, 30, 0.8);
         }
 
         .range-group {
@@ -183,21 +226,21 @@ DASHBOARD_TEMPLATE = """
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background: var(--neon-cyan);
-            box-shadow: 0 0 8px var(--neon-cyan);
+            background: var(--neon-accent);
+            box-shadow: 0 0 8px var(--neon-accent);
         }
 
         .range-counter {
             font-size: 0.9rem;
             font-weight: 700;
-            color: var(--neon-cyan);
+            color: var(--neon-accent);
             min-width: 3.5rem;
             text-align: right;
         }
 
         .submit-trigger {
             grid-column: span 3;
-            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 50%, var(--neon-pink) 100%);
+            background: var(--neon-gradient);
             color: white;
             border: none;
             border-radius: 14px;
@@ -205,9 +248,9 @@ DASHBOARD_TEMPLATE = """
             font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             margin-top: 0.75rem;
-            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
 
         @media (max-width: 850px) { .submit-trigger { grid-column: span 2; } }
@@ -215,7 +258,8 @@ DASHBOARD_TEMPLATE = """
 
         .submit-trigger:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
+            filter: brightness(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
 
         .analytics-side {
@@ -225,19 +269,32 @@ DASHBOARD_TEMPLATE = """
         }
 
         .valuation-display {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-            border: 1px solid rgba(6, 182, 212, 0.3);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid var(--border-glass);
             border-radius: 20px;
             padding: 2rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .valuation-display::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--neon-gradient);
+            opacity: 0.12;
+            z-index: 0;
         }
 
         .valuation-display h2 {
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: var(--neon-cyan);
+            color: var(--neon-accent);
             margin-bottom: 0.3rem;
+            position: relative;
+            z-index: 1;
         }
 
         .valuation-price-container {
@@ -248,17 +305,17 @@ DASHBOARD_TEMPLATE = """
             justify-content: center;
             align-items: center;
             gap: 0.2rem;
-            text-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
+            text-shadow: 0 0 25px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
         }
 
         .valuation-price-container span {
-            background: linear-gradient(to right, #ffffff, #f472b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-main);
         }
 
         .chart-card {
-            padding: 1.75rem;
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -283,7 +340,7 @@ DASHBOARD_TEMPLATE = """
         .clear-history-action {
             background: transparent;
             border: none;
-            color: var(--neon-pink);
+            color: var(--neon-accent);
             cursor: pointer;
             font-size: 0.8rem;
             font-weight: 700;
@@ -315,8 +372,8 @@ DASHBOARD_TEMPLATE = """
         }
 
         .chat-bubble.ai-response {
-            background: rgba(6, 182, 212, 0.08);
-            border: 1px solid rgba(6, 182, 212, 0.15);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-glass);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
             width: 90%;
@@ -356,21 +413,33 @@ DASHBOARD_TEMPLATE = """
 <body>
 
     <div class="dashboard-container">
-        <!-- Main Form Entries Architecture -->
+        <!-- Main Asset Form Matrix Section Layout -->
         <div class="glass-card">
             <div class="header-block">
                 <div>
                     <h1>Valuation Matrix Node</h1>
                     <p class="subtitle">Ensemble Learning 17-Factor Pricing Node Blueprint</p>
                 </div>
-                <div style="min-width: 120px;">
-                    <label>Currency</label>
-                    <select id="currencySelector" onchange="convertActiveValuations()">
-                        <option value="USD" selected>USD ($)</option>
-                        <option value="INR">INR (₹)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="GBP">GBP (£)</option>
-                    </select>
+                <div class="controls-header">
+                    <!-- Color Themes Menu Controller Selection -->
+                    <div style="min-width: 130px;">
+                        <label>Color Palette</label>
+                        <select id="themeSelector" onchange="switchApplicationTheme()">
+                            <option value="cyber" selected>Cyber Neon</option>
+                            <option value="emerald">Emerald Luxury</option>
+                            <option value="crimson">Obsidian Crimson</option>
+                        </select>
+                    </div>
+                    <!-- Currency selector conversion element switcher -->
+                    <div style="min-width: 110px;">
+                        <label>Currency</label>
+                        <select id="currencySelector" onchange="convertActiveValuations()">
+                            <option value="INR" selected>INR (₹)</option>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -379,7 +448,7 @@ DASHBOARD_TEMPLATE = """
             {% endif %}
 
             <form method="POST" action="/" class="feature-grid">
-                <!-- Dropdown Fields Matrix -->
+                <!-- Dropdown Categorization Blocks Layout matrix fields -->
                 <div class="input-wrapper">
                     <label>Brand Manufacturer</label>
                     <select name="Make">
@@ -408,8 +477,8 @@ DASHBOARD_TEMPLATE = """
                 <div class="input-wrapper">
                     <label>Year of Assembly</label>
                     <div class="range-group">
-                        <input type="range" id="Year" name="Year" min="2010" max="2026" value="{{ form_values.Year|default(2020) }}" oninput="syncRangeValue('Year', this.value)">
-                        <span id="Year_counter" class="range-counter">{{ form_values.Year|default(2020) }}</span>
+                        <input type="range" id="Year" name="Year" min="2010" max="2026" value="{{ form_values.Year|default(2026) }}" oninput="syncRangeValue('Year', this.value)">
+                        <span id="Year_counter" class="range-counter">{{ form_values.Year|default(2026) }}</span>
                     </div>
                 </div>
                 <div class="input-wrapper">
@@ -428,41 +497,34 @@ DASHBOARD_TEMPLATE = """
                     </select>
                 </div>
 
+                <!-- Number typing layouts completely replacing range scrolling items -->
                 <div class="input-wrapper">
                     <label>Engine Capacity (L)</label>
-                    <div class="range-group">
-                        <input type="range" id="Engine_Size" name="Engine_Size" min="0.8" max="6.0" step="0.1" value="{{ form_values.Engine_Size|default(2.0) }}" oninput="syncRangeValue('Engine_Size', this.value)">
-                        <span id="Engine_Size_counter" class="range-counter">{{ form_values.Engine_Size|default(2.0) }}</span>
-                    </div>
+                    <input type="number" id="Engine_Size" name="Engine_Size" step="0.1" min="0.5" max="8.0" placeholder="e.g. 2.0" value="{{ form_values.Engine_Size|default('4.0') }}">
                 </div>
-                <div class="input-wrapper span-2">
+                <div class="input-wrapper">
                     <label>Distance Traveled (Odometer km)</label>
-                    <div class="range-group">
-                        <input type="range" id="Mileage" name="Mileage" min="0" max="200000" step="500" value="{{ form_values.Mileage|default(45000) }}" oninput="syncRangeValue('Mileage', this.value)">
-                        <span id="Mileage_counter" class="range-counter">{{ form_values.Mileage|default(45000) }}</span>
-                    </div>
+                    <input type="number" id="Mileage" name="Mileage" step="1" min="0" max="500000" placeholder="e.g. 45000" value="{{ form_values.Mileage|default('0') }}">
+                </div>
+                <div class="input-wrapper">
+                    <label>Brake Horsepower</label>
+                    <input type="number" id="Horsepower" name="Horsepower" step="1" min="30" max="1000" placeholder="e.g. 150" value="{{ form_values.Horsepower|default('167') }}">
                 </div>
 
+                <div class="input-wrapper">
+                    <label>Torque Curve (Nm)</label>
+                    <input type="number" id="Torque" name="Torque" step="1" min="50" max="1200" placeholder="e.g. 250" value="{{ form_values.Torque|default('246') }}">
+                </div>
+                <div class="input-wrapper">
+                    <label>Fuel Efficiency (km/L)</label>
+                    <input type="number" id="Fuel_Efficiency" name="Fuel_Efficiency" step="0.1" min="2" max="50" placeholder="e.g. 15.4" value="{{ form_values.Fuel_Efficiency|default('30.0') }}">
+                </div>
                 <div class="input-wrapper">
                     <label>Service Portfolio State</label>
                     <select name="Service_History">
                         <option value="0" {% if form_values.Service_History == '0' %}selected{% endif %}>Full Documented</option>
                         <option value="1" {% if form_values.Service_History == '1' %}selected{% endif %}>Partial / Missing</option>
                     </select>
-                </div>
-                <div class="input-wrapper">
-                    <label>Brake Horsepower</label>
-                    <div class="range-group">
-                        <input type="range" id="Horsepower" name="Horsepower" min="60" max="600" value="{{ form_values.Horsepower|default(150) }}" oninput="syncRangeValue('Horsepower', this.value)">
-                        <span id="Horsepower_counter" class="range-counter">{{ form_values.Horsepower|default(150) }}</span>
-                    </div>
-                </div>
-                <div class="input-wrapper">
-                    <label>Torque Curve (Nm)</label>
-                    <div class="range-group">
-                        <input type="range" id="Torque" name="Torque" min="100" max="700" value="{{ form_values.Torque|default(250) }}" oninput="syncRangeValue('Torque', this.value)">
-                        <span id="Torque_counter" class="range-counter">{{ form_values.Torque|default(250) }}</span>
-                    </div>
                 </div>
 
                 <div class="input-wrapper">
@@ -520,14 +582,7 @@ DASHBOARD_TEMPLATE = """
                         <option value="1" {% if form_values.Tech_Package == '1' %}selected{% endif %}>Advanced Navigation</option>
                     </select>
                 </div>
-                <div class="input-wrapper">
-                    <label>Fuel Efficiency (km/L)</label>
-                    <div class="range-group">
-                        <input type="range" id="Fuel_Efficiency" name="Fuel_Efficiency" min="5" max="30" value="{{ form_values.Fuel_Efficiency|default(15) }}" oninput="syncRangeValue('Fuel_Efficiency', this.value)">
-                        <span id="Fuel_Efficiency_counter" class="range-counter">{{ form_values.Fuel_Efficiency|default(15) }}</span>
-                    </div>
-                </div>
-                <div class="input-wrapper">
+                <div class="input-wrapper span-2">
                     <label>Regional Marketplace</label>
                     <select name="Location">
                         <option value="0" {% if form_values.Location == '0' %}selected{% endif %}>Metro Hub</option>
@@ -539,28 +594,28 @@ DASHBOARD_TEMPLATE = """
             </form>
         </div>
 
-        <!-- Output Analytics Logs Column -->
+        <!-- Output Analytics Layout presentation column section panel -->
         <div class="analytics-side">
             {% if prediction_result is not none %}
             <div class="valuation-display">
                 <h2>Evaluated Target Vector Consensus</h2>
                 <div class="valuation-price-container">
-                    <span id="currencySymbol">$</span>
-                    <span id="baseValuationPrice" data-usd="{{ prediction_result|replace(',', '') }}">{{ prediction_result }}</span>
+                    <span id="currencySymbol">₹</span>
+                    <span id="baseValuationPrice" data-inr="{{ prediction_result|replace(',', '') }}">{{ prediction_result }}</span>
                 </div>
-                <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 0.4rem; color: var(--neon-cyan);">RandomForest Regressor Ensemble 17-D Core Output</p>
+                <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 0.4rem;">RandomForest Regressor Ensemble 17-D Core Output Matrix</p>
             </div>
             {% endif %}
 
-            <!-- High-Contrast Neon Pie Chart Container Mapping Features -->
+            <!-- Interactive High-contrast Pie Chart Engine Container mapping elements -->
             <div class="glass-card chart-card">
-                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 0.05em;">Feature Weight Distribution</h3>
+                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--neon-accent); text-transform: uppercase; letter-spacing: 0.05em;">Feature Weight Distribution</h3>
                 <div style="width: 100%; max-height: 200px; display: flex; justify-content: center;">
                     <canvas id="featureWeightPieChart"></canvas>
                 </div>
             </div>
 
-            <!-- Thread Execution Logs Container Stack -->
+            <!-- Historical System Activity Array stream logs mapping tracker -->
             <div class="glass-card chat-history-card">
                 <div class="chat-header">
                     <h3 style="font-size: 0.9rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">Sequential Prediction Logs</h3>
@@ -580,7 +635,7 @@ DASHBOARD_TEMPLATE = """
                         <div class="chat-bubble ai-response">
                             <div class="bubble-meta">Pipeline Output</div>
                             Resolution metrics mapped value signature to token: 
-                            <strong style="color: var(--neon-cyan);" class="loggedPrice" data-usd="{{ interaction.output|replace(',', '') }}">${{ interaction.output }} USD</strong>
+                            <strong style="color: var(--neon-accent);" class="loggedPrice" data-inr="{{ interaction.output|replace(',', '') }}">₹{{ interaction.output }} INR</strong>
                         </div>
                     {% else %}
                         <div class="no-records">No session records tracked in system active thread.</div>
@@ -591,15 +646,21 @@ DASHBOARD_TEMPLATE = """
     </div>
 
     <script>
+        // Global Currency Exchange metrics definition map variables
         const currencyExchangeMatrix = {
-            USD: { symbol: '$', rate: 1.0 },
-            INR: { symbol: '₹', rate: 83.45 },
-            EUR: { symbol: '€', rate: 0.92 },
-            GBP: { symbol: '£', rate: 0.79 }
+            INR: { symbol: '₹', rate: 1.0 },
+            USD: { symbol: '$', rate: 0.012 },
+            EUR: { symbol: '€', rate: 0.011 },
+            GBP: { symbol: '£', rate: 0.0095 }
         };
 
         function syncRangeValue(sliderId, value) {
             document.getElementById(sliderId + '_counter').innerText = value;
+        }
+
+        function switchApplicationTheme() {
+            const chosenTheme = document.getElementById('themeSelector').value;
+            document.documentElement.setAttribute('data-theme', chosenTheme);
         }
 
         function convertActiveValuations() {
@@ -610,35 +671,35 @@ DASHBOARD_TEMPLATE = """
             const primaryPriceElement = document.getElementById('baseValuationPrice');
             const primarySymbolElement = document.getElementById('currencySymbol');
             if(primaryPriceElement && primarySymbolElement) {
-                const nativeUSDValue = parseFloat(primaryPriceElement.getAttribute('data-usd'));
-                const scaledPrice = nativeUSDValue * configuration.rate;
+                const nativeINRValue = parseFloat(primaryPriceElement.getAttribute('data-inr'));
+                const scaledPrice = nativeINRValue * configuration.rate;
                 primarySymbolElement.innerText = configuration.symbol;
                 primaryPriceElement.innerText = scaledPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
 
             document.querySelectorAll('.loggedPrice').forEach(element => {
-                const nativeUSD = parseFloat(element.getAttribute('data-usd'));
-                const scaled = nativeUSD * configuration.rate;
+                const nativeINR = parseFloat(element.getAttribute('data-inr'));
+                const scaled = nativeINR * configuration.rate;
                 element.innerText = configuration.symbol + scaled.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ' + targetCurrency;
             });
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Setup dynamic vector weighting array elements inside our modern Pie Chart
-            const yearVal = parseFloat(document.getElementById('Year') ? document.getElementById('Year').value : 2020);
-            const mileageVal = parseFloat(document.getElementById('Mileage') ? document.getElementById('Mileage').value : 45000);
-            const hpVal = parseFloat(document.getElementById('Horsepower') ? document.getElementById('Horsepower').value : 150);
+            // Dynamic evaluation weighting compilation configuration for Pie Canvas chart tracking
+            const mileageVal = parseFloat(document.getElementById('Mileage') ? document.getElementById('Mileage').value : 0) || 1000;
+            const hpVal = parseFloat(document.getElementById('Horsepower') ? document.getElementById('Horsepower').value : 167) || 150;
+            const torqueVal = parseFloat(document.getElementById('Torque') ? document.getElementById('Torque').value : 246) || 200;
 
             const ctx = document.getElementById('featureWeightPieChart').getContext('2d');
             new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: ['Odometer Metrics', 'Age Matrix', 'Engine Output', 'Remaining Vector Attributes'],
+                    labels: ['Odometer Metrics', 'Engine Output (HP)', 'Torque Profile', 'Structural Base Features'],
                     datasets: [{
-                        data: [mileageVal * 0.4, (2026 - yearVal) * 800, hpVal * 15, 12000],
+                        data: [mileageVal * 0.5 + 2000, hpVal * 25, torqueVal * 20, 15000],
                         backgroundColor: ['#06b6d4', '#8b5cf6', '#ec4899', '#334155'],
                         borderWidth: 1,
-                        borderColor: 'rgba(255,255,255,0.1)'
+                        borderColor: 'rgba(255,255,255,0.08)'
                     }]
                 },
                 options: {
@@ -650,6 +711,7 @@ DASHBOARD_TEMPLATE = """
                 }
             });
             
+            // Execute formatting conversion pipeline triggers loops
             convertActiveValuations();
         });
     </script>
@@ -658,7 +720,7 @@ DASHBOARD_TEMPLATE = """
 """
 
 # -------------------------------------------------------------
-# DYNAMIC MATRIX LOGISTICS DISPATCHER GATEWAY
+# CORE PIPELINE MATRIX DESPATCH GATEWAY ROUTER
 # -------------------------------------------------------------
 @app.route("/", methods=["GET", "POST"])
 def main_gateway():
@@ -678,13 +740,16 @@ def main_gateway():
         ]
         form_values = {f: request.form.get(f) for f in all_ui_fields}
 
+        # Mathematical Fallback Emulator Engine Base logic sequence
         if model is None:
-            # Intuitive mathematical fallback logic loop
             try:
-                base_calculation = 42500.00
-                mileage_deduction = float(form_values.get('Mileage', 45000)) * 0.11
-                age_deduction = (2026 - int(form_values.get('Year', 2020))) * 1700
-                calculated_sim_val = max(3400.00, base_calculation - mileage_deduction - age_deduction)
+                # Default output values mapped directly into Indian Rupee metrics scale space
+                base_calculation = 3500000.00
+                mileage_deduction = float(form_values.get('Mileage', 0) or 0) * 4.5
+                age_deduction = (2026 - int(form_values.get('Year', 2026))) * 120000
+                hp_bonus = (int(form_values.get('Horsepower', 167) or 167) - 100) * 3500
+                
+                calculated_sim_val = max(250000.00, base_calculation - mileage_deduction - age_deduction + hp_bonus)
                 prediction_result = f"{calculated_sim_val:,.2f}"
 
                 current_stack = session["history"]
@@ -694,24 +759,24 @@ def main_gateway():
                 error_msg = f"Vector Generation Simulation Exception: {str(ex)}"
         else:
             try:
-                # COMPILATION RECTIFICATION ROUTE: Mapped array explicitly to 17 features expected by the pipeline
+                # SLICING RESOLUTION CORE PATHWAY: Slicing the 20 visual fields into strict 17 data features
                 evaluation_vector = np.array([[
                     int(form_values['Make']),
                     int(form_values['Model']),
                     int(form_values['Year']),
                     int(form_values['Fuel_Type']),
                     int(form_values['Transmission']),
-                    float(form_values['Engine_Size']),
+                    float(form_values['Engine_Size'] or 2.0),
                     int(form_values['Service_History']),
-                    float(form_values['Mileage']),
-                    int(form_values['Horsepower']),
-                    int(form_values['Torque']),
+                    float(form_values['Mileage'] or 0),
+                    int(form_values['Horsepower'] or 150),
+                    int(form_values['Torque'] or 250),
                     int(form_values['Owners']),
                     int(form_values['Accident_History']),
                     int(form_values['Color']),
                     int(form_values['Body_Type']),
                     int(form_values['Drivetrain']),
-                    float(form_values['Fuel_Efficiency']),
+                    float(form_values['Fuel_Efficiency'] or 15.0),
                     int(form_values['Location'])
                 ]], dtype=object)
 
