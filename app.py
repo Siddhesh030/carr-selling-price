@@ -20,7 +20,7 @@ def load_valuation_engine():
 model = load_valuation_engine()
 
 # -------------------------------------------------------------
-# HIGH-FIDELITY DYNAMIC SIMPLIFIED INTERFACE TEMPLATE
+# HIGH-ENHANCEMENT LUXURY NEON UI TEMPLATE
 # -------------------------------------------------------------
 DASHBOARD_TEMPLATE = """
 <!DOCTYPE html>
@@ -32,7 +32,7 @@ DASHBOARD_TEMPLATE = """
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Multi-Theme Framework Matrix definitions */
+        /* Multi-Theme Framework Matrix definitions (All Dark-Optimized Base) */
         :root, [data-theme="cyber"] {
             --bg-base: #060913;
             --panel-glass: rgba(15, 23, 42, 0.75);
@@ -45,6 +45,42 @@ DASHBOARD_TEMPLATE = """
             --bg-glow: radial-gradient(circle at 50% 0%, #1c1942 0%, #060913 70%);
         }
         
+        [data-theme="sporty"] {
+            --bg-base: #0c0c0e;
+            --panel-glass: rgba(24, 24, 27, 0.8);
+            --border-glass: rgba(255, 255, 255, 0.05);
+            --neon-accent: #ea580c;
+            --neon-secondary: #f97316;
+            --neon-gradient: linear-gradient(135deg, #ea580c 0%, #ef4444 100%);
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --bg-glow: radial-gradient(circle at 50% 0%, #2d1610 0%, #0c0c0e 75%);
+        }
+
+        [data-theme="fresh"] {
+            --bg-base: #020617;
+            --panel-glass: rgba(15, 23, 42, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --neon-accent: #22c55e;
+            --neon-secondary: #84cc16;
+            --neon-gradient: linear-gradient(135deg, #22c55e 0%, #a3e635 100%);
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
+            --bg-glow: radial-gradient(circle at 50% 0%, #064e3b 0%, #020617 75%);
+        }
+
+        [data-theme="attitude"] {
+            --bg-base: #070708;
+            --panel-glass: rgba(18, 18, 20, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.04);
+            --neon-accent: #db2777;
+            --neon-secondary: #e11d48;
+            --neon-gradient: linear-gradient(135deg, #db2777 0%, #4c0519 100%);
+            --text-main: #fff5f5;
+            --text-muted: #fda4af;
+            --bg-glow: radial-gradient(circle at 50% 0%, #4c0519 0%, #070708 75%);
+        }
+
         [data-theme="emerald"] {
             --bg-base: #022c22;
             --panel-glass: rgba(6, 78, 59, 0.5);
@@ -55,18 +91,6 @@ DASHBOARD_TEMPLATE = """
             --text-main: #f0fdf4;
             --text-muted: #a7f3d0;
             --bg-glow: radial-gradient(circle at 50% 0%, #064e3b 0%, #022c22 75%);
-        }
-
-        [data-theme="crimson"] {
-            --bg-base: #111827;
-            --panel-glass: rgba(31, 41, 55, 0.75);
-            --border-glass: rgba(255, 255, 255, 0.06);
-            --neon-accent: #ef4444;
-            --neon-secondary: #f43f5e;
-            --neon-gradient: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
-            --text-main: #f9fafb;
-            --text-muted: #d1d5db;
-            --bg-glow: radial-gradient(circle at 50% 0%, #450a0a 0%, #111827 75%);
         }
 
         * {
@@ -205,39 +229,6 @@ DASHBOARD_TEMPLATE = """
             background: rgba(10, 15, 30, 0.8);
         }
 
-        .range-group {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        input[type="range"] {
-            padding: 0;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--neon-accent);
-            box-shadow: 0 0 8px var(--neon-accent);
-        }
-
-        .range-counter {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--neon-accent);
-            min-width: 3.5rem;
-            text-align: right;
-        }
-
         .submit-trigger {
             grid-column: span 3;
             background: var(--neon-gradient);
@@ -310,8 +301,17 @@ DASHBOARD_TEMPLATE = """
             z-index: 1;
         }
 
-        .valuation-price-container span {
+        /* Highlights dynamic assessment text styling box */
+        .suggestions-block {
+            margin-top: 1rem;
+            padding: 0.85rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--neon-accent);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            line-height: 1.4;
             color: var(--text-main);
+            text-align: left;
         }
 
         .chart-card {
@@ -413,7 +413,7 @@ DASHBOARD_TEMPLATE = """
 <body>
 
     <div class="dashboard-container">
-        <!-- Main Asset Form Matrix Section Layout -->
+        <!-- Main Form Input Elements Config -->
         <div class="glass-card">
             <div class="header-block">
                 <div>
@@ -421,16 +421,18 @@ DASHBOARD_TEMPLATE = """
                     <p class="subtitle">Ensemble Learning 17-Factor Pricing Node Blueprint</p>
                 </div>
                 <div class="controls-header">
-                    <!-- Color Themes Menu Controller Selection -->
-                    <div style="min-width: 130px;">
+                    <!-- Expanded Dark Custom Color Themes Selection Box Switcher -->
+                    <div style="min-width: 140px;">
                         <label>Color Palette</label>
                         <select id="themeSelector" onchange="switchApplicationTheme()">
                             <option value="cyber" selected>Cyber Neon</option>
+                            <option value="sporty">Dark Sporty</option>
+                            <option value="fresh">Fresh Velocity</option>
+                            <option value="attitude">Baddie Attitude</option>
                             <option value="emerald">Emerald Luxury</option>
-                            <option value="crimson">Obsidian Crimson</option>
                         </select>
                     </div>
-                    <!-- Currency selector conversion element switcher -->
+                    <!-- Currency matrix converter -->
                     <div style="min-width: 110px;">
                         <label>Currency</label>
                         <select id="currencySelector" onchange="convertActiveValuations()">
@@ -448,7 +450,7 @@ DASHBOARD_TEMPLATE = """
             {% endif %}
 
             <form method="POST" action="/" class="feature-grid">
-                <!-- Dropdown Categorization Blocks Layout matrix fields -->
+                <!-- Dropdown categorical blocks layout metrics -->
                 <div class="input-wrapper">
                     <label>Brand Manufacturer</label>
                     <select name="Make">
@@ -474,12 +476,10 @@ DASHBOARD_TEMPLATE = """
                     </select>
                 </div>
 
+                <!-- Year of Assembly transformed into clean manual typing input fields -->
                 <div class="input-wrapper">
                     <label>Year of Assembly</label>
-                    <div class="range-group">
-                        <input type="range" id="Year" name="Year" min="2010" max="2026" value="{{ form_values.Year|default(2026) }}" oninput="syncRangeValue('Year', this.value)">
-                        <span id="Year_counter" class="range-counter">{{ form_values.Year|default(2026) }}</span>
-                    </div>
+                    <input type="number" id="Year" name="Year" min="2000" max="2027" placeholder="e.g. 2024" value="{{ form_values.Year|default('2026') }}">
                 </div>
                 <div class="input-wrapper">
                     <label>Fuel System Source</label>
@@ -497,7 +497,7 @@ DASHBOARD_TEMPLATE = """
                     </select>
                 </div>
 
-                <!-- Number typing layouts completely replacing range scrolling items -->
+                <!-- Technical typing fields entries structure -->
                 <div class="input-wrapper">
                     <label>Engine Capacity (L)</label>
                     <input type="number" id="Engine_Size" name="Engine_Size" step="0.1" min="0.5" max="8.0" placeholder="e.g. 2.0" value="{{ form_values.Engine_Size|default('4.0') }}">
@@ -603,11 +603,17 @@ DASHBOARD_TEMPLATE = """
                     <span id="currencySymbol">₹</span>
                     <span id="baseValuationPrice" data-inr="{{ prediction_result|replace(',', '') }}">{{ prediction_result }}</span>
                 </div>
-                <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 0.4rem;">RandomForest Regressor Ensemble 17-D Core Output Matrix</p>
+                
+                <!-- AI Strategy Insight Suggestion Container elements -->
+                <div class="suggestions-block">
+                    <strong>Asset Status Insight:</strong> {{ dynamic_suggestion }}
+                </div>
+                
+                <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 0.8rem;">RandomForest Regressor Ensemble 17-D Core Output Matrix</p>
             </div>
             {% endif %}
 
-            <!-- Interactive High-contrast Pie Chart Engine Container mapping elements -->
+            <!-- High-contrast Pie Canvas chart tracking mapping elements -->
             <div class="glass-card chart-card">
                 <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--neon-accent); text-transform: uppercase; letter-spacing: 0.05em;">Feature Weight Distribution</h3>
                 <div style="width: 100%; max-height: 200px; display: flex; justify-content: center;">
@@ -615,7 +621,7 @@ DASHBOARD_TEMPLATE = """
                 </div>
             </div>
 
-            <!-- Historical System Activity Array stream logs mapping tracker -->
+            <!-- Historical Activities Traces streams -->
             <div class="glass-card chat-history-card">
                 <div class="chat-header">
                     <h3 style="font-size: 0.9rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">Sequential Prediction Logs</h3>
@@ -646,17 +652,12 @@ DASHBOARD_TEMPLATE = """
     </div>
 
     <script>
-        // Global Currency Exchange metrics definition map variables
         const currencyExchangeMatrix = {
             INR: { symbol: '₹', rate: 1.0 },
             USD: { symbol: '$', rate: 0.012 },
             EUR: { symbol: '€', rate: 0.011 },
             GBP: { symbol: '£', rate: 0.0095 }
         };
-
-        function syncRangeValue(sliderId, value) {
-            document.getElementById(sliderId + '_counter').innerText = value;
-        }
 
         function switchApplicationTheme() {
             const chosenTheme = document.getElementById('themeSelector').value;
@@ -685,7 +686,6 @@ DASHBOARD_TEMPLATE = """
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Dynamic evaluation weighting compilation configuration for Pie Canvas chart tracking
             const mileageVal = parseFloat(document.getElementById('Mileage') ? document.getElementById('Mileage').value : 0) || 1000;
             const hpVal = parseFloat(document.getElementById('Horsepower') ? document.getElementById('Horsepower').value : 167) || 150;
             const torqueVal = parseFloat(document.getElementById('Torque') ? document.getElementById('Torque').value : 246) || 200;
@@ -697,7 +697,7 @@ DASHBOARD_TEMPLATE = """
                     labels: ['Odometer Metrics', 'Engine Output (HP)', 'Torque Profile', 'Structural Base Features'],
                     datasets: [{
                         data: [mileageVal * 0.5 + 2000, hpVal * 25, torqueVal * 20, 15000],
-                        backgroundColor: ['#06b6d4', '#8b5cf6', '#ec4899', '#334155'],
+                        backgroundColor: ['#06b6d4', '#ea580c', '#ec4899', '#4b5563'],
                         borderWidth: 1,
                         borderColor: 'rgba(255,255,255,0.08)'
                     }]
@@ -711,7 +711,6 @@ DASHBOARD_TEMPLATE = """
                 }
             });
             
-            // Execute formatting conversion pipeline triggers loops
             convertActiveValuations();
         });
     </script>
@@ -726,6 +725,7 @@ DASHBOARD_TEMPLATE = """
 def main_gateway():
     error_msg = None
     prediction_result = None
+    dynamic_suggestion = ""
     form_values = {}
 
     if "history" not in session:
@@ -740,16 +740,41 @@ def main_gateway():
         ]
         form_values = {f: request.form.get(f) for f in all_ui_fields}
 
-        # Mathematical Fallback Emulator Engine Base logic sequence
+        # DYNAMIC INTELLIGENCE INSIGHT ENGINE EVALUATION BLOCK
+        try:
+            hp = int(form_values.get('Horsepower', 167) or 167)
+            body = form_values.get('Body_Type', '0')
+            drive = form_values.get('Drivetrain', '0')
+            eff = float(form_values.get('Fuel_Efficiency', 30.0) or 30.0)
+
+            suggestions = []
+            if hp >= 280:
+                suggestions.append("This car is incredibly fast with extreme track acceleration power!")
+            elif hp >= 160:
+                suggestions.append("Solid top-tier throttle response profile.")
+                
+            if body == '2' and drive == '2':
+                suggestions.append("This variant configuration is highly capable for off-roading adventures.")
+                
+            if hp > 150 and eff > 20:
+                suggestions.append("This structural powertrain combination is excellent, matching high speed with smart economy balance!")
+            
+            if not suggestions:
+                suggestions.append("Balanced consumer asset matrix specifications profiles.")
+                
+            dynamic_suggestion = " ".join(suggestions)
+        except Exception:
+            dynamic_suggestion = "Asset parameters vector processed correctly."
+
+        # Model Execution Vector compilation block mapping down to 17 features
         if model is None:
             try:
-                # Default output values mapped directly into Indian Rupee metrics scale space
-                base_calculation = 3500000.00
-                mileage_deduction = float(form_values.get('Mileage', 0) or 0) * 4.5
-                age_deduction = (2026 - int(form_values.get('Year', 2026))) * 120000
-                hp_bonus = (int(form_values.get('Horsepower', 167) or 167) - 100) * 3500
+                base_calculation = 3600000.00
+                mileage_deduction = float(form_values.get('Mileage', 0) or 0) * 4.2
+                age_deduction = (2026 - int(form_values.get('Year', 2026) or 2026)) * 115000
+                hp_bonus = (int(form_values.get('Horsepower', 167) or 167) - 100) * 3800
                 
-                calculated_sim_val = max(250000.00, base_calculation - mileage_deduction - age_deduction + hp_bonus)
+                calculated_sim_val = max(280000.00, base_calculation - mileage_deduction - age_deduction + hp_bonus)
                 prediction_result = f"{calculated_sim_val:,.2f}"
 
                 current_stack = session["history"]
@@ -759,11 +784,10 @@ def main_gateway():
                 error_msg = f"Vector Generation Simulation Exception: {str(ex)}"
         else:
             try:
-                # SLICING RESOLUTION CORE PATHWAY: Slicing the 20 visual fields into strict 17 data features
                 evaluation_vector = np.array([[
                     int(form_values['Make']),
                     int(form_values['Model']),
-                    int(form_values['Year']),
+                    int(form_values['Year'] or 2026),
                     int(form_values['Fuel_Type']),
                     int(form_values['Transmission']),
                     float(form_values['Engine_Size'] or 2.0),
@@ -795,13 +819,14 @@ def main_gateway():
         prediction_result=prediction_result,
         form_values=form_values,
         history=session.get("history", []),
-        error_msg=error_msg
+        error_msg=error_msg,
+        dynamic_suggestion=dynamic_suggestion
     )
 
 @app.route("/clear", methods=["POST"])
 def purge_logs():
     session["history"] = []
-    return render_template_string(DASHBOARD_TEMPLATE, prediction_result=None, form_values={}, history=[], error_msg=None)
+    return render_template_string(DASHBOARD_TEMPLATE, prediction_result=None, form_values={}, history=[], error_msg=None, dynamic_suggestion="")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
