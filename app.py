@@ -1,103 +1,51 @@
 import os
 import pickle
 import numpy as np
-import pandas as pd
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, render_template_string, session
 
-# Initialize Flask Application for AWS WSGI / Gunicorn compatibility
 app = Flask(__name__)
-application = app
+app.secret_key = os.urandom(24)  # Secure session state encryption key
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# -------------------------------------------------------------
+# AUTOMOTIVE PREDICTION PIPELINE CONFIGURATION
+# -------------------------------------------------------------
+MODEL_PATH = "rfamodel.pkl"
 
-# Resolution logic to automatically load the model pkl file
-MODEL_PATH = None
-for filename in os.listdir(CURRENT_DIR):
-    if filename.endswith("rfamodel.pkl"):
-        MODEL_PATH = os.path.join(CURRENT_DIR, filename)
-        break
+# Feature structure extracted from model metadata:
+# ['Make', 'Model', 'Year', 'Fuel_Type', 'Transmission', 'Engine_Size', 
+#  'Service_History', 'Mileage', 'Horsepower', 'Torque', 'Owners', 
+#  'Accident_History', 'Color', 'Body_Type', 'Drivetrain', 'Fuel_Efficiency', 'Location']
 
-model = None
-if MODEL_PATH:
-    try:
-        with open(MODEL_PATH, "rb") as f:
-            model = pickle.load(f)
-        print(f"Model loaded successfully from: {MODEL_PATH}")
-    except Exception as e:
-        print(f"Error loading model: {e}")
+def load_valuation_engine():
+    if not os.path.exists(MODEL_PATH):
+        return None
+    with open(MODEL_PATH, 'rb') as file:
+        return pickle.load(file)
 
-# Global Multi-Currency Conversion Matrix (Assuming Base Model trains on USD values)
-CURRENCY_MAP = {
-    "USD": {"symbol": "$", "rate": 1.0},
-    "EUR": {"symbol": "€", "rate": 0.92},
-    "GBP": {"symbol": "£", "rate": 0.78},
-    "INR": {"symbol": "₹", "rate": 83.50}
-}
+model = load_valuation_engine()
 
-HTML_TEMPLATE = """
+# -------------------------------------------------------------
+# HIGH-FIDELITY GLASSMORPHISM UI WITH CHAT STREAM LOGS
+# -------------------------------------------------------------
+DASHBOARD_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="en" data-theme="emerald">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insurance Charges Estimator | AI Decision Engine</title>
-    <!-- Google Fonts, FontAwesome, jsPDF, and Chart.js -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <title>AutoValuate AI | Predictive Market Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        [data-theme="emerald"] {
-            --bg-dark: #02120a;
-            --card-glass: rgba(6, 30, 18, 0.75);
-            --card-border: rgba(16, 185, 129, 0.25);
-            --primary-glow: #10b981;
-            --primary-bright: #34d399;
-            --primary-dim: rgba(16, 185, 129, 0.15);
-        }
-
-        [data-theme="cyberpunk"] {
-            --bg-dark: #030712;
-            --card-glass: rgba(15, 23, 42, 0.75);
-            --card-border: rgba(0, 242, 254, 0.25);
-            --primary-glow: #00f2fe;
-            --primary-bright: #38bdf8;
-            --primary-dim: rgba(0, 242, 254, 0.15);
-        }
-
-        [data-theme="amber"] {
-            --bg-dark: #0a0d14;
-            --card-glass: rgba(18, 24, 38, 0.75);
-            --card-border: rgba(245, 158, 11, 0.25);
-            --primary-glow: #f59e0b;
-            --primary-bright: #fbbf24;
-            --primary-dim: rgba(245, 158, 11, 0.15);
-        }
-
-        [data-theme="frost"] {
-            --bg-dark: #0f172a;
-            --card-glass: rgba(30, 41, 59, 0.75);
-            --card-border: rgba(129, 140, 248, 0.25);
-            --primary-glow: #818cf8;
-            --primary-bright: #a5b4fc;
-            --primary-dim: rgba(129, 140, 248, 0.15);
-        }
-
-        [data-theme="crimson"] {
-            --bg-dark: #120307;
-            --card-glass: rgba(30, 8, 15, 0.75);
-            --card-border: rgba(244, 63, 94, 0.25);
-            --primary-glow: #f43f5e;
-            --primary-bright: #fb7185;
-            --primary-dim: rgba(244, 63, 94, 0.15);
-        }
-
         :root {
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --input-bg: rgba(10, 13, 20, 0.65);
-            --input-border: rgba(255, 255, 255, 0.1);
+            --bg-dark: #090d16;
+            --panel-glass: rgba(17, 24, 39, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.06);
+            --neon-accent: #3b82f6;
+            --neon-secondary: #6366f1;
+            --neon-glow: rgba(99, 102, 241, 0.35);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
 
         * {
@@ -105,836 +53,594 @@ HTML_TEMPLATE = """
             margin: 0;
             padding: 0;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background: radial-gradient(circle at 50% 0%, #1e1e38 0%, var(--bg-dark) 70%);
+            color: var(--text-primary);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
             overflow-x: hidden;
         }
 
-        .ambient-orb {
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            filter: blur(140px);
-            z-index: -1;
-            opacity: 0.25;
-            pointer-events: none;
-            animation: pulseOrb 8s infinite alternate ease-in-out;
-        }
-        .orb-1 { top: -200px; right: -100px; background: var(--primary-glow); }
-        .orb-2 { bottom: -200px; left: -100px; background: var(--primary-glow); animation-delay: -4s; }
-
-        @keyframes pulseOrb {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.2; }
-            100% { transform: scale(1.15) translate(-30px, 30px); opacity: 0.3; }
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 6%;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(10, 13, 20, 0.8);
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--primary-glow), var(--primary-bright));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #0a0d14;
-            font-size: 1.2rem;
-            box-shadow: 0 0 20px var(--primary-dim);
-        }
-
-        .theme-switcher {
-            display: flex;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 6px 10px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .theme-btn {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .theme-btn.active {
-            border-color: #ffffff;
-            transform: scale(1.2);
-        }
-
-        .theme-matrix { background: #10b981; }
-        .theme-cyber { background: #00f2fe; }
-        .theme-amber { background: #f59e0b; }
-        .theme-frost { background: #818cf8; }
-        .theme-crimson { background: #f43f5e; }
-
-        .workspace-container {
-            max-width: 1400px;
-            margin: 35px auto;
-            padding: 0 4%;
+        .dashboard-container {
             width: 100%;
-            flex-grow: 1;
+            max-width: 1300px;
+            display: grid;
+            grid-template-columns: 1.3fr 0.7fr;
+            gap: 2rem;
+            animation: containerAppearing 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .header-section {
-            text-align: center;
-            margin-bottom: 38px;
+        @media (max-width: 1100px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .title-badge {
-            display: inline-block;
-            padding: 6px 18px;
-            background: var(--primary-dim);
-            border: 1px solid var(--primary-glow);
-            border-radius: 30px;
-            color: var(--primary-bright);
-            font-size: 0.78rem;
+        .glass-card {
+            background: var(--panel-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .header-block {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1.25rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 12px;
-        }
-
-        .main-title {
-            font-size: 2.6rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #ffffff 0%, var(--primary-bright) 100%);
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .main-subtitle {
-            color: var(--text-sub);
-            font-size: 1.02rem;
-            max-width: 650px;
-            margin: 0 auto;
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
         }
 
-        .grid-layout {
+        /* 17 Feature Entry Form Layout Grid */
+        .feature-grid {
             display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            gap: 32px;
-            align-items: start;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
         }
 
-        .sticky-sidebar {
-            position: sticky;
-            top: 110px;
-            z-index: 10;
+        @media (max-width: 780px) {
+            .feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 520px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 0.4rem;
         }
 
-        .glass-card {
-            background: var(--card-glass);
-            border-radius: 28px;
-            border: 1px solid var(--card-border);
-            padding: 34px;
-            backdrop-filter: blur(24px);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+        .span-2 {
+            grid-column: span 2;
         }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        @media (max-width: 780px) {
+            .span-2 { grid-column: span 1; }
         }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title i {
-            color: var(--primary-glow);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .span-2 { grid-column: span 2; }
 
         label {
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: #cbd5e1;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .live-val {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--primary-bright);
-            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
         input, select {
-            width: 100%;
-            padding: 13px 15px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--input-border);
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-glass);
             border-radius: 12px;
-            color: var(--text-main);
-            font-size: 0.92rem;
-            font-weight: 500;
+            padding: 0.85rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
             transition: all 0.25s ease;
-        }
-
-        select {
-            appearance: none;
-            cursor: pointer;
-            padding-right: 36px;
-        }
-
-        .select-wrapper {
-            position: relative;
-        }
-
-        .select-wrapper::after {
-            content: '\\f107';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-sub);
-            pointer-events: none;
+            outline: none;
+            width: 100%;
         }
 
         input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-glow);
-            box-shadow: 0 0 0 4px var(--primary-dim);
-            background-color: rgba(10, 13, 20, 0.9);
+            border-color: var(--neon-accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            background: rgba(15, 23, 42, 0.8);
         }
 
-        .btn-predict {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, var(--primary-glow) 0%, var(--primary-bright) 100%);
-            color: #0a0d14;
-            font-weight: 800;
-            font-size: 1.05rem;
-            border: none;
-            border-radius: 16px;
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-top: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: 0 10px 30px var(--primary-dim);
         }
 
-        .btn-predict:hover {
+        .range-counter {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--neon-accent);
+            min-width: 3.5rem;
+            text-align: right;
+        }
+
+        .submit-trigger {
+            grid-column: span 3;
+            background: linear-gradient(135deg, var(--neon-accent) 0%, var(--neon-secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 1.1rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            box-shadow: 0 4px 20px var(--neon-glow);
+        }
+
+        @media (max-width: 780px) { .submit-trigger { grid-column: span 2; } }
+        @media (max-width: 520px) { .submit-trigger { grid-column: span 1; } }
+
+        .submit-trigger:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 40px var(--primary-dim);
-            color: #ffffff;
+            box-shadow: 0 8px 25px var(--neon-glow);
+            filter: brightness(1.1);
         }
 
-        .valuation-card {
-            background: linear-gradient(180deg, var(--primary-dim) 0%, rgba(10, 13, 20, 0.05) 100%);
-            border: 1px solid var(--primary-glow);
-            border-radius: 20px;
-            padding: 24px;
+        /* Sidebar & Live Metrics Output styling */
+        .analytics-side {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .valuation-display {
+            background: var(--success-gradient);
+            border-radius: 24px;
+            padding: 2.2rem;
             text-align: center;
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.25);
+            animation: cardSlidingUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        .val-tag {
-            font-size: 0.78rem;
+        .valuation-display h2 {
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--text-sub);
-            font-weight: 700;
-            margin-bottom: 6px;
+            letter-spacing: 0.12em;
+            opacity: 0.85;
+            margin-bottom: 0.4rem;
         }
 
-        .val-price {
-            font-size: 2.2rem;
+        .valuation-price {
+            font-size: 2.8rem;
             font-weight: 800;
-            color: #ffffff;
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
+            letter-spacing: -0.03em;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.15);
         }
 
-        .chart-box {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            height: 200px;
-        }
-
-        /* Person History Stream (Chat Presentation) */
-        .chat-stream {
+        /* Conversational Execution History Stream */
+        .chat-history-card {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            max-height: 250px;
+            max-height: 540px;
+            min-height: 400px;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .clear-history-action {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .clear-history-action:hover {
+            color: #ef4444;
+        }
+
+        .chat-log-stream {
             overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        .chat-stream::-webkit-scrollbar { width: 4px; }
-        .chat-stream::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-
-        .chat-msg {
-            max-width: 85%;
-            padding: 10px 14px;
-            border-radius: 16px;
-            font-size: 0.88rem;
-            line-height: 1.4;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            animation: messageFade 0.4s ease;
+            gap: 1rem;
+            padding-right: 0.4rem;
+            flex-grow: 1;
         }
 
-        @keyframes messageFade {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .chat-log-stream::-webkit-scrollbar { width: 5px; }
+        .chat-log Stream::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
         }
 
-        .chat-msg.user {
+        .chat-bubble {
+            display: flex;
+            flex-direction: column;
+            max-width: 88%;
+            padding: 0.85rem 1.1rem;
+            border-radius: 18px;
+            font-size: 0.88rem;
+            line-height: 1.45;
+            animation: bubblePop 0.4s ease-out;
+        }
+
+        .chat-bubble.user-query {
             background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.05);
             align-self: flex-end;
             border-bottom-right-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.03);
         }
 
-        .chat-msg.ai {
-            background: var(--primary-dim);
-            border: 1px solid var(--card-border);
+        .chat-bubble.ai-response {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.18);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
 
-        .msg-meta {
+        .bubble-meta {
             font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.3rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--text-sub);
-            font-weight: 700;
         }
 
-        .msg-badges {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 2px;
-        }
-
-        .badge-pill {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        .btn-report {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.88rem;
-            cursor: pointer;
-            margin-top: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.25s ease;
-        }
-
-        .btn-report:hover {
-            background: var(--primary-dim);
-            border-color: var(--primary-glow);
-            color: var(--primary-bright);
-        }
-
-        .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(10, 13, 20, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        footer {
+        .no-records {
+            color: var(--text-secondary);
             text-align: center;
-            padding: 24px;
-            color: var(--text-sub);
-            font-size: 0.85rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            margin-top: auto;
+            margin: auto;
+            font-style: italic;
+            font-size: 0.9rem;
         }
 
-        @media (max-width: 1024px) {
-            .grid-layout { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
-            .sticky-sidebar { position: static; }
+        .system-alert {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #fca5a5;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Fluid Animation Framework */
+        @keyframes containerAppearing {
+            from { opacity: 0; transform: scale(0.98) translateY(15px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes cardSlidingUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bubblePop {
+            from { opacity: 0; transform: scale(0.95) translateY(5px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
     </style>
 </head>
 <body>
 
-<div class="ambient-orb orb-1"></div>
-<div class="ambient-orb orb-2"></div>
-
-<nav class="navbar">
-    <div class="brand">
-        <div class="brand-logo"><i class="fa-solid fa-notes-medical"></i></div>
-        <span>MedicalCharges<span style="color: var(--primary-glow);">.ai</span></span>
-    </div>
-   
-    <div style="display: flex; align-items: center; gap: 14px;">
-        <div class="theme-switcher">
-            <button class="theme-btn theme-matrix active" onclick="switchTheme('emerald')"></button>
-            <button class="theme-btn theme-cyber" onclick="switchTheme('cyberpunk')"></button>
-            <button class="theme-btn theme-amber" onclick="switchTheme('amber')"></button>
-            <button class="theme-btn theme-frost" onclick="switchTheme('frost')"></button>
-            <button class="theme-btn theme-crimson" onclick="switchTheme('crimson')"></button>
-        </div>
-    </div>
-</nav>
-
-<div class="workspace-container">
-    <div class="header-section">
-        <span class="title-badge">Decision Tree Regressor</span>
-        <h1 class="main-title">Insurance Charges Estimator</h1>
-        <p class="main-subtitle">Predict medical insurance costs in real-time based on individual health parameters.</p>
-    </div>
-
-    <div class="grid-layout">
-        <!-- Input Form -->
+    <div class="dashboard-container">
+        <!-- Input Parameters Core -->
         <div class="glass-card">
-            <div class="section-header">
-                <span class="section-title"><i class="fa-solid fa-sliders"></i> Medical Attributes</span>
-                <span style="font-size: 0.8rem; color: var(--text-sub);">Insurance Dataset</span>
+            <div class="header-block">
+                <h1>Valuation Intelligence Console</h1>
+                <p class="subtitle">17-Factor RandomForest Vehicle Analysis Execution Node</p>
             </div>
-           
-            <form id="predictionForm">
-                <div class="form-grid">
-                   
-                    <div class="form-group">
-                        <label>Age <span class="live-val" id="ageVal">30</span></label>
-                        <input type="number" name="age" value="30" min="18" max="100" required oninput="document.getElementById('ageVal').textContent = this.value">
-                    </div>
 
-                    <div class="form-group">
-                        <label>Sex</label>
-                        <div class="select-wrapper">
-                            <select name="sex" required>
-                                <option value="female" selected>Female</option>
-                                <option value="male">Male</option>
-                            </select>
-                        </div>
-                    </div>
+            {% if error_msg %}
+            <div class="system-alert">{{ error_msg }}</div>
+            {% endif %}
 
-                    <div class="form-group">
-                        <label>BMI (Body Mass Index) <span class="live-val" id="bmiVal">25.0</span></label>
-                        <input type="number" name="bmi" value="25.0" step="0.1" min="10" max="60" required oninput="document.getElementById('bmiVal').textContent = parseFloat(this.value).toFixed(1)">
+            <form method="POST" action="/" class="feature-grid">
+                <!-- Row 1: Brand Spec Base -->
+                <div class="input-wrapper">
+                    <label>Make</label>
+                    <select name="Make">
+                        <option value="0" {% if form_values.Make == '0' %}selected{% endif %}>Toyota</option>
+                        <option value="1" {% if form_values.Make == '1' %}selected{% endif %}>Honda</option>
+                        <option value="2" {% if form_values.Make == '2' %}selected{% endif %}>Ford</option>
+                        <option value="3" {% if form_values.Make == '3' %}selected{% endif %}>BMW</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Model Variant</label>
+                    <select name="Model">
+                        <option value="0" {% if form_values.Model == '0' %}selected{% endif %}>Sedan Base</option>
+                        <option value="1" {% if form_values.Model == '1' %}selected{% endif %}>SUV Sport</option>
+                        <option value="2" {% if form_values.Model == '2' %}selected{% endif %}>Eco Hatch</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Year of Manufacture</label>
+                    <div class="range-group">
+                        <input type="range" id="Year" name="Year" min="2010" max="2026" value="{{ form_values.Year|default(2020) }}" oninput="syncRangeValue('Year', this.value)">
+                        <span id="Year_counter" class="range-counter">{{ form_values.Year|default(2020) }}</span>
                     </div>
-
-                    <div class="form-group">
-                        <label>Children Count <span class="live-val" id="childVal">0</span></label>
-                        <input type="number" name="children" value="0" min="0" max="10" required oninput="document.getElementById('childVal').textContent = this.value">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Smoker Status</label>
-                        <div class="select-wrapper">
-                            <select name="smoker" required>
-                                <option value="no" selected>No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Geographic Region</label>
-                        <div class="select-wrapper">
-                            <select name="region" required>
-                                <option value="northwest" selected>Northwest</option>
-                                <option value="northeast">Northeast</option>
-                                <option value="southeast">Southeast</option>
-                                <option value="southwest">Southwest</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group span-2">
-                        <label>Output Base Currency</label>
-                        <div class="select-wrapper">
-                            <select id="currency" name="currency" onchange="updateCurrencyUI()">
-                                <option value="USD" selected>USD ($) - United States Dollar</option>
-                                <option value="EUR">EUR (€) - Eurozone</option>
-                                <option value="GBP">GBP (£) - United Kingdom</option>
-                                <option value="INR">INR (₹) - Indian Rupee</option>
-                            </select>
-                        </div>
-                    </div>
-
                 </div>
 
-                <button type="submit" class="btn-predict" id="submitBtn">
-                    <span class="btn-text">Estimate Medical Charges</span>
-                    <div class="spinner" id="btnSpinner"></div>
-                </button>
+                <!-- Row 2: Mechanicals -->
+                <div class="input-wrapper">
+                    <label>Fuel Type</label>
+                    <select name="Fuel_Type">
+                        <option value="0" {% if form_values.Fuel_Type == '0' %}selected{% endif %}>Petrol</option>
+                        <option value="1" {% if form_values.Fuel_Type == '1' %}selected{% endif %}>Diesel</option>
+                        <option value="2" {% if form_values.Fuel_Type == '2' %}selected{% endif %}>Electric</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Transmission</label>
+                    <select name="Transmission">
+                        <option value="0" {% if form_values.Transmission == '0' %}selected{% endif %}>Manual</option>
+                        <option value="1" {% if form_values.Transmission == '1' %}selected{% endif %}>Automatic</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Engine Size (L)</label>
+                    <div class="range-group">
+                        <input type="range" id="Engine_Size" name="Engine_Size" min="0.8" max="6.0" step="0.1" value="{{ form_values.Engine_Size|default(2.0) }}" oninput="syncRangeValue('Engine_Size', this.value)">
+                        <span id="Engine_Size_counter" class="range-counter">{{ form_values.Engine_Size|default(2.0) }}</span>
+                    </div>
+                </div>
+
+                <!-- Row 3: Use Dynamics -->
+                <div class="input-wrapper span-2">
+                    <label>Mileage Tracking (kms)</label>
+                    <div class="range-group">
+                        <input type="range" id="Mileage" name="Mileage" min="0" max="200000" step="500" value="{{ form_values.Mileage|default(45000) }}" oninput="syncRangeValue('Mileage', this.value)">
+                        <span id="Mileage_counter" class="range-counter">{{ form_values.Mileage|default(45000) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Service History</label>
+                    <select name="Service_History">
+                        <option value="0" {% if form_values.Service_History == '0' %}selected{% endif %}>Full Documented</option>
+                        <option value="1" {% if form_values.Service_History == '1' %}selected{% endif %}>Partial / Missing</option>
+                    </select>
+                </div>
+
+                <!-- Row 4: Power metrics -->
+                <div class="input-wrapper">
+                    <label>Horsepower</label>
+                    <div class="range-group">
+                        <input type="range" id="Horsepower" name="Horsepower" min="60" max="600" value="{{ form_values.Horsepower|default(150) }}" oninput="syncRangeValue('Horsepower', this.value)">
+                        <span id="Horsepower_counter" class="range-counter">{{ form_values.Horsepower|default(150) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Torque (Nm)</label>
+                    <div class="range-group">
+                        <input type="range" id="Torque" name="Torque" min="100" max="700" value="{{ form_values.Torque|default(250) }}" oninput="syncRangeValue('Torque', this.value)">
+                        <span id="Torque_counter" class="range-counter">{{ form_values.Torque|default(250) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Previous Owners</label>
+                    <select name="Owners">
+                        <option value="1" {% if form_values.Owners == '1' %}selected{% endif %}>1 Owner</option>
+                        <option value="2" {% if form_values.Owners == '2' %}selected{% endif %}>2 Owners</option>
+                        <option value="3" {% if form_values.Owners == '3' %}selected{% endif %}>3+</option>
+                    </select>
+                </div>
+
+                <!-- Row 5: Safety & Cosmetics -->
+                <div class="input-wrapper">
+                    <label>Accident History</label>
+                    <select name="Accident_History">
+                        <option value="0" {% if form_values.Accident_History == '0' %}selected{% endif %}>No Incidents</option>
+                        <option value="1" {% if form_values.Accident_History == '1' %}selected{% endif %}>Major / Repaired</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Color Class</label>
+                    <select name="Color">
+                        <option value="0" {% if form_values.Color == '0' %}selected{% endif %}>Metallic Black</option>
+                        <option value="1" {% if form_values.Color == '1' %}selected{% endif %}>Pure White</option>
+                        <option value="2" {% if form_values.Color == '2' %}selected{% endif %}>Silver Accent</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Body Architecture</label>
+                    <select name="Body_Type">
+                        <option value="0" {% if form_values.Body_Type == '0' %}selected{% endif %}>Coupe</option>
+                        <option value="1" {% if form_values.Body_Type == '1' %}selected{% endif %}>Sedan</option>
+                        <option value="2" {% if form_values.Body_Type == '2' %}selected{% endif %}>SUV</option>
+                    </select>
+                </div>
+
+                <!-- Row 6: Structural and Geography -->
+                <div class="input-wrapper">
+                    <label>Drivetrain Config</label>
+                    <select name="Drivetrain">
+                        <option value="0" {% if form_values.Drivetrain == '0' %}selected{% endif %}>FWD</option>
+                        <option value="1" {% if form_values.Drivetrain == '1' %}selected{% endif %}>RWD</option>
+                        <option value="2" {% if form_values.Drivetrain == '2' %}selected{% endif %}>AWD</option>
+                    </select>
+                </div>
+                <div class="input-wrapper">
+                    <label>Fuel Efficiency (km/L)</label>
+                    <div class="range-group">
+                        <input type="range" id="Fuel_Efficiency" name="Fuel_Efficiency" min="5" max="30" value="{{ form_values.Fuel_Efficiency|default(15) }}" oninput="syncRangeValue('Fuel_Efficiency', this.value)">
+                        <span id="Fuel_Efficiency_counter" class="range-counter">{{ form_values.Fuel_Efficiency|default(15) }}</span>
+                    </div>
+                </div>
+                <div class="input-wrapper">
+                    <label>Regional Location</label>
+                    <select name="Location">
+                        <option value="0" {% if form_values.Location == '0' %}selected{% endif %}>Metro Hub</option>
+                        <option value="1" {% if form_values.Location == '1' %}selected{% endif %}>Regional District</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-trigger">Process Asset Value Vectors</button>
             </form>
         </div>
 
-        <!-- Telemetry Sidebar -->
-        <div class="sticky-sidebar" id="outputSection">
-            <div class="glass-card">
-                <div class="section-header">
-                    <span class="section-title"><i class="fa-solid fa-calculator"></i> Estimated Telemetry</span>
-                </div>
-               
-                <div class="valuation-card" id="resultCard">
-                    <div class="val-tag">Predicted Insurance Cost</div>
-                    <div class="val-price">
-                        <i class="fa-solid fa-file-invoice-dollar" id="resultIcon" style="color: var(--primary-glow);"></i>
-                        <span id="resultOutput">$0.00</span>
-                    </div>
-                </div>
-
-                <!-- Pie Chart Target Canvas Area -->
-                <div class="chart-box">
-                    <canvas id="riskAllocationChart"></canvas>
-                </div>
+        <!-- Output Analytics Logs Side Column -->
+        <div class="analytics-side">
+            {% if prediction_result is not none %}
+            <div class="valuation-display">
+                <h2>Evaluated Market Value</h2>
+                <div class="valuation-price">${{ prediction_result }}</div>
+                <p style="font-size: 0.82rem; opacity: 0.8; margin-top: 0.25rem;">RandomForest Ensemble Consensus</p>
             </div>
+            {% endif %}
 
-            <!-- Person History Stack (Chat Presentation Block) -->
-            <div class="glass-card">
-                <div class="section-header">
-                    <span class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Person Audit Logs</span>
-                    <button class="btn-reset" style="background:none; border:none; text-decoration:underline; color:var(--text-sub); font-size:0.8rem; cursor:pointer;" onclick="flushChatMemory()">Clear</button>
-                </div>
-                
-                <div class="chat-stream" id="chatFeed">
-                    <div style="text-align: center; color: var(--text-sub); font-size: 0.85rem; margin: auto; padding: 1rem 0;" id="emptyFeedText">
-                        No previous runs parsed in current stack session.
-                    </div>
+            <!-- Chat Message Streams Format -->
+            <div class="glass-card chat-history-card">
+                <div class="chat-header">
+                    <h3 style="font-size: 1.05rem; font-weight:600;">Prediction Stream Thread</h3>
+                    {% if history %}
+                    <form method="POST" action="/clear">
+                        <button type="submit" class="clear-history-action">Purge Threads</button>
+                    </form>
+                    {% endif %}
                 </div>
 
-                <button type="button" class="btn-report" onclick="downloadPDFReport()">
-                    <i class="fa-solid fa-file-pdf"></i> Download Brief
-                </button>
+                <div class="chat-log-stream">
+                    {% for interaction in history %}
+                        <div class="chat-bubble user-query">
+                            <div class="bubble-meta">User Input Payload</div>
+                            Year: {{ interaction.inputs.Year }} | Mileage: {{ interaction.inputs.Mileage }} km | HP: {{ interaction.inputs.Horsepower }}
+                        </div>
+                        <div class="chat-bubble ai-response">
+                            <div class="bubble-meta">Model Response System</div>
+                            The estimated asset valuation model pipeline maps this index signature matrix to standard vector value: <strong>${{ interaction.output }}</strong>.
+                        </div>
+                    {% else %}
+                        <div class="no-records">No session history tracked in active socket state.</div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-
     </div>
-</div>
 
-<footer>&copy; 2026 Insurance Cost Predictor &bull; DecisionTree Core Engine</footer>
-
-<script>
-    let rawUSDValue = 0.00;
-    let currencySymbol = "$";
-    let currencyRate = 1.0;
-    let telemetryChart = null;
-
-    // Multi-Currency Mapping Definitions
-    const currencyMatrix = {
-        "USD": { symbol: "$", rate: 1.0 },
-        "EUR": { symbol: "€", rate: 0.92 },
-        "GBP": { symbol: "£", rate: 0.78 },
-        "INR": { symbol: "₹", rate: 83.50 }
-    };
-
-    function switchTheme(themeName) {
-        document.documentElement.setAttribute('data-theme', themeName);
-        document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-        let themeMap = { 'emerald': 'matrix', 'cyberpunk': 'cyber', 'amber': 'amber', 'frost': 'frost', 'crimson': 'crimson' };
-        document.querySelector(`.theme-${themeMap[themeName]}`).classList.add('active');
-        if(telemetryChart) {
-            updateChartColors();
+    <script>
+        function syncRangeValue(sliderId, value) {
+            document.getElementById(sliderId + '_counter').innerText = value;
         }
-    }
-
-    function updateCurrencyUI() {
-        const select = document.getElementById('currency');
-        const activeConfig = currencyMatrix[select.value];
-        currencySymbol = activeConfig.symbol;
-        currencyRate = activeConfig.rate;
-        
-        const scaledVal = rawUSDValue * currencyRate;
-        document.getElementById('resultOutput').textContent = currencySymbol + scaledVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
-
-    // ChartJS Dynamic Color Engine matching framework configuration themes
-    function getThemeColors() {
-        const theme = document.documentElement.getAttribute('data-theme') || 'emerald';
-        if (theme === 'cyberpunk') return ['#00f2fe', '#38bdf8', '#6366f1', '#1f2937'];
-        if (theme === 'amber') return ['#f59e0b', '#fbbf24', '#4b5563', '#1f2937'];
-        if (theme === 'frost') return ['#818cf8', '#a5b4fc', '#475569', '#1e293b'];
-        if (theme === 'crimson') return ['#f43f5e', '#fb7185', '#3f111a', '#1c050c'];
-        return ['#10b981', '#34d399', '#064e3b', '#0c2214']; // emerald / default
-    }
-
-    function renderTelemetryChart(age, bmi, smoker) {
-        const ctx = document.getElementById('riskAllocationChart').getContext('2d');
-        const colors = getThemeColors();
-
-        const baseTier = 1500;
-        const ageWeight = Math.max(500, parseInt(age) * 65);
-        const bmiWeight = Math.max(400, parseFloat(bmi) * 55);
-        const lifestylePremium = smoker === 'yes' ? 12000 : 200;
-
-        if (telemetryChart) {
-            telemetryChart.destroy();
-        }
-
-        telemetryChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Base Risk Tier', 'Age Progression Weight', 'Volumetric BMI Weight', 'Lifestyle Penalty Adjust'],
-                datasets: [{
-                    data: [baseTier, ageWeight, bmiWeight, lifestylePremium],
-                    backgroundColor: colors,
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { color: '#94a3b8', boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 9 } }
-                    }
-                }
-            }
-        });
-    }
-
-    function updateChartColors() {
-        const colors = getThemeColors();
-        telemetryChart.data.datasets[0].backgroundColor = colors;
-        telemetryChart.update();
-    }
-
-    document.getElementById('predictionForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const submitBtn = document.getElementById('submitBtn');
-        const spinner = document.getElementById('btnSpinner');
-        const btnText = submitBtn.querySelector('.btn-text');
-        const resultOutput = document.getElementById('resultOutput');
-       
-        submitBtn.disabled = true;
-        spinner.style.display = 'block';
-        btnText.textContent = 'Traversing Decision Tree...';
-       
-        try {
-            const response = await fetch('/predict', { method: 'POST', body: new FormData(form) });
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                rawUSDValue = data.raw_value;
-                updateCurrencyUI();
-                
-                // Hide default empty context state indicator text label
-                const emptyTxt = document.getElementById('emptyFeedText');
-                if(emptyTxt) emptyTxt.style.display = 'none';
-
-                const ageInput = form.elements['age'].value;
-                const bmiInput = parseFloat(form.elements['bmi'].value).toFixed(1);
-                const smokerInput = form.elements['smoker'].value;
-
-                // Push dynamic frame allocation vectors to chart renderer
-                renderTelemetryChart(ageInput, bmiInput, smokerInput);
-                
-                // Push chat blocks directly to presentation history logs container element view
-                appendChatMessagePair(ageInput, bmiInput, smokerInput, currencySymbol + (rawUSDValue * currencyRate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-
-            } else {
-                resultOutput.textContent = 'Error: ' + data.message;
-            }
-        } catch (error) {
-            resultOutput.textContent = error.message;
-        } finally {
-            submitBtn.disabled = false;
-            spinner.style.display = 'none';
-            btnText.textContent = 'Estimate Medical Charges';
-        }
-    });
-
-    function appendChatMessagePair(age, bmi, smoker, parsedOutputPrice) {
-        const feed = document.getElementById('chatFeed');
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-        // Build User Message Prompt Bubble block structure dynamically
-        const userBubble = document.createElement('div');
-        userBubble.className = 'chat-msg user';
-        userBubble.innerHTML = `
-            <span class="msg-meta">Parameters Requested &bull; ${timestamp}</span>
-            <div class="msg-badges">
-                <span class="badge-pill">Age: ${age}</span>
-                <span class="badge-pill">BMI: ${bmi}</span>
-                <span class="badge-pill">Smoker: ${smoker.toUpperCase()}</span>
-            </div>
-        `;
-
-        // Build AI System Prediction response framing bubble node framework block matching topology
-        const aiBubble = document.createElement('div');
-        aiBubble.className = 'chat-msg ai';
-        aiBubble.innerHTML = `
-            <span class="msg-meta" style="color:var(--primary-bright);">Engine Inference Response</span>
-            <div style="font-weight:600;">Prediction resolves evaluation to <span class="tag-price">${parsedOutputPrice}</span></div>
-        `;
-
-        feed.insertBefore(aiBubble, feed.firstChild);
-        feed.insertBefore(userBubble, feed.firstChild);
-    }
-
-    function flushChatMemory() {
-        const feed = document.getElementById('chatFeed');
-        feed.innerHTML = `<div style="text-align: center; color: var(--text-sub); font-size: 0.85rem; margin: auto; padding: 1rem 0;" id="emptyFeedText">No previous runs parsed in current stack session.</div>`;
-        rawUSDValue = 0.0;
-        document.getElementById('resultOutput').textContent = currencySymbol + "0.00";
-        if(telemetryChart) telemetryChart.destroy();
-    }
-
-    function downloadPDFReport() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const select = document.getElementById('currency');
-        
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(20);
-        doc.text("Insurance Cost Estimation Report", 20, 22);
-        doc.setFontSize(10);
-        doc.text("Runtime Date Boundary Frame: " + new Date().toLocaleString(), 20, 30);
-        doc.line(20, 35, 190, 35);
-        
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text("Active Frame Parameter Logs Considered:", 20, 48);
-        doc.setFont("helvetica", "normal");
-        doc.text("- Demographics Evaluation Age Group: " + document.getElementById('predictionForm').elements['age'].value + " Years Old", 25, 58);
-        doc.text("- Body Mass Index Volumetric Weight: " + document.getElementById('predictionForm').elements['bmi'].value + " BMI", 25, 66);
-        doc.text("- Selected Base Output Localized Unit: " + select.value, 25, 74);
-        
-        doc.line(20, 84, 190, 84);
-        doc.setFontSize(15);
-        doc.setFont("helvetica", "bold");
-        doc.text("Calculated Premium Cost: " + document.getElementById('resultOutput').textContent, 20, 98);
-        doc.save("Insurance_Telemetry_Audit_Brief.pdf");
-    }
-</script>
+    </script>
 </body>
 </html>
 """
 
-@app.route('/', methods=['GET'])
-def index():
-    return render_template_string(HTML_TEMPLATE)
+# -------------------------------------------------------------
+# GATEWAY CONTROLLER ARCHITECTURE
+# -------------------------------------------------------------
+@app.route("/", methods=["GET", "POST"])
+def main_gateway():
+    error_msg = None
+    prediction_result = None
+    form_values = {}
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if model is None:
-        return jsonify({'status': 'error', 'message': 'Decision Tree Regressor model not loaded.'}), 500
+    if "history" not in session:
+        session["history"] = []
+
+    if request.method == "POST":
+        # Capture raw form fields matching the 17 architectural features
+        fields = [
+            'Make', 'Model', 'Year', 'Fuel_Type', 'Transmission', 'Engine_Size', 
+            'Service_History', 'Mileage', 'Horsepower', 'Torque', 'Owners', 
+            'Accident_History', 'Color', 'Body_Type', 'Drivetrain', 'Fuel_Efficiency', 'Location'
+        ]
         
-    try:
-        # Standard alphabetical LabelEncoder mappings matching scikit-learn
-        sex_map = {'female': 0, 'male': 1}
-        smoker_map = {'no': 0, 'yes': 1}
-        region_map = {'northeast': 0, 'northwest': 1, 'southeast': 2, 'southwest': 3}
+        form_values = {f: request.form.get(f) for f in fields}
 
-        age = float(request.form['age'])
-        sex = sex_map.get(str(request.form['sex']).strip().lower(), 0)
-        bmi = float(request.form['bmi'])
-        children = float(request.form['children'])
-        smoker = smoker_map.get(str(request.form['smoker']).strip().lower(), 0)
-        region = region_map.get(str(request.form['region']).strip().lower(), 0)
+        if model is None:
+            error_msg = "Critical Engine Alert: 'model.pkl' could not be safely initialized from target storage memory."
+        else:
+            try:
+                # Structure input feature vector matching dataset alignment 
+                evaluation_vector = np.array([[
+                    int(form_values['Make']),
+                    int(form_values['Model']),
+                    int(form_values['Year']),
+                    int(form_values['Fuel_Type']),
+                    int(form_values['Transmission']),
+                    float(form_values['Engine_Size']),
+                    int(form_values['Service_History']),
+                    float(form_values['Mileage']),
+                    int(form_values['Horsepower']),
+                    int(form_values['Torque']),
+                    int(form_values['Owners']),
+                    int(form_values['Accident_History']),
+                    int(form_values['Color']),
+                    int(form_values['Body_Type']),
+                    int(form_values['Drivetrain']),
+                    float(form_values['Fuel_Efficiency']),
+                    int(form_values['Location'])
+                ]], dtype=object)
 
-        # Match exact feature array order expected by the model
-        features_df = pd.DataFrame({
-            'age': [age],
-            'sex': [sex],
-            'bmi': [bmi],
-            'children': [children],
-            'smoker': [smoker],
-            'region': [region]
-        })
+                # Compute value using target random forest regressor
+                calculated_matrix = model.predict(evaluation_vector)
+                prediction_result = f"{float(calculated_matrix[0]):,.2f}"
 
-        raw_pred = float(model.predict(features_df)[0])
+                # Update operational thread list trace metrics
+                current_stack = session["history"]
+                current_stack.insert(0, {
+                    "inputs": form_values,
+                    "output": prediction_result
+                })
+                session["history"] = current_stack[:5]  # Retention layer constraint limit
 
-        return jsonify({
-            'status': 'success',
-            'raw_value': raw_pred
-        })
-        
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+            except Exception as ex:
+                error_msg = f"Vector Compilation Error: {str(ex)}"
 
-# AWS Execution Listener listening on port 5000
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    return render_template_string(
+        DASHBOARD_TEMPLATE,
+        prediction_result=prediction_result,
+        form_values=form_values,
+        history=session.get("history", []),
+        error_msg=error_msg
+    )
+
+@app.route("/clear", methods=["POST"])
+def purge_logs():
+    session["history"] = []
+    return render_template_string(DASHBOARD_TEMPLATE, prediction_result=None, form_values={}, history=[], error_msg=None)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
